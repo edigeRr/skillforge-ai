@@ -88,7 +88,7 @@ Index: `user_id`; index on `token_hash` for fast lookup on refresh.
 | created_at | TIMESTAMPTZ | NOT NULL, default `now()` |
 | finished_at | TIMESTAMPTZ | NULLABLE |
 
-Index: `user_id`; partial index on `(user_id) WHERE status = 'in_progress'` to make the "one active interview" rule cheap to check.
+Index: `user_id`; **unique** partial index on `(user_id) WHERE status = 'in_progress'` — enforces "one active interview per user" at the database level, not just in application code, so two concurrent `start()` calls can't both slip through.
 
 ### questions
 | Column | Type | Constraints |
