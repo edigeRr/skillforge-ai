@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str | None = None
     OPENAI_API_KEY: str | None = None
 
+    # Interview
+    INTERVIEW_QUESTION_COUNT: int = 5
+
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
