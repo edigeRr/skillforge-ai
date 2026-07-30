@@ -9,6 +9,8 @@ from app.core.exceptions import UnauthorizedError
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.user import User
+from app.repositories.interview_repository import InterviewRepository
+from app.repositories.question_repository import QuestionRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 
@@ -23,6 +25,14 @@ async def get_refresh_token_repository(
     session: AsyncSession = Depends(get_db),
 ) -> RefreshTokenRepository:
     return RefreshTokenRepository(session)
+
+
+async def get_interview_repository(session: AsyncSession = Depends(get_db)) -> InterviewRepository:
+    return InterviewRepository(session)
+
+
+async def get_question_repository(session: AsyncSession = Depends(get_db)) -> QuestionRepository:
+    return QuestionRepository(session)
 
 
 async def get_current_user(
