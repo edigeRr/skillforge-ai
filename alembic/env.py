@@ -8,8 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.core.config import get_settings
 from app.db.session import Base
 
-# Import models here so Base.metadata is populated for autogenerate, e.g.:
-# from app.models import user, refresh_token, interview, question  # noqa
+import app.models  # noqa: F401 - populates Base.metadata for autogenerate
 
 config = context.config
 settings = get_settings()
