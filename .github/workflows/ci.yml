@@ -51,5 +51,5 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://skillforge:skillforge@localhost:5432/skillforge_test
           REDIS_URL: redis://localhost:6379/0
-          JWT_SECRET_KEY: test-secret
+          JWT_SECRET_KEY: test-secret-key-that-is-long-enough-for-hmac256
         run: pytest --cov=app --cov-report=term-missing
