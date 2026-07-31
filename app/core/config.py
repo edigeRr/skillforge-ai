@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 14
 
     # AI Provider
-    AI_PROVIDER: str = "anthropic"  # anthropic | openai
+    AI_PROVIDER: str = "fake"  # fake | anthropic | openai
     ANTHROPIC_API_KEY: str | None = None
     OPENAI_API_KEY: str | None = None
 

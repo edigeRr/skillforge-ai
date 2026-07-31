@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from app.ai.fake_provider import FakeAIProvider
+from app.ai.factory import get_ai_provider
 from app.api.deps import get_current_user, get_interview_repository, get_question_repository
 from app.models.interview import Interview
 from app.models.question import Question
@@ -32,9 +32,7 @@ def get_interview_service(
     interviews: InterviewRepository = Depends(get_interview_repository),
     questions: QuestionRepository = Depends(get_question_repository),
 ) -> InterviewService:
-    # Sprint 4 makes this configurable (AI_PROVIDER=anthropic|openai); the fake
-    # provider is enough to exercise and test the full interview loop for now.
-    return InterviewService(interviews, questions, FakeAIProvider())
+    return InterviewService(interviews, questions, get_ai_provider())
 
 
 def _to_detail(interview: Interview, questions: list[Question]) -> InterviewDetailResponse:
