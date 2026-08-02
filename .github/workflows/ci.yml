@@ -43,9 +43,9 @@ jobs:
 
       - name: Lint
         run: |
-          black --check app tests
-          isort --check-only app tests
-          ruff check app tests
+          black --check app tests scripts
+          isort --check-only app tests scripts
+          ruff check app tests scripts
 
       - name: Run tests
         env:
@@ -53,3 +53,6 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET_KEY: test-secret-key-that-is-long-enough-for-hmac256
         run: pytest --cov=app --cov-report=term-missing
+
+      - name: Coverage gate (services + api must be >= 80%)
+        run: coverage report --include="app/services/*,app/api/*" --fail-under=80
