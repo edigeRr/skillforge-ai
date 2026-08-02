@@ -79,6 +79,7 @@ async def test_login_rejects_wrong_password(client):
 async def test_protected_route_rejects_missing_token(client):
     resp = await client.get("/api/v1/profile/me")
     assert resp.status_code == 401
+    assert resp.json()["error_code"] == "UNAUTHORIZED"
 
 
 async def test_protected_route_rejects_garbage_token(client):
@@ -87,3 +88,14 @@ async def test_protected_route_rejects_garbage_token(client):
     )
     assert resp.status_code == 401
     assert resp.json()["error_code"] == "INVALID_TOKEN"
+
+
+async def test_login_rate_limit_returns_too_many_attempts(client):
+    payload = {"email": "doesnotexist@example.com", "password": "wrong-password-1"}
+    for _ in range(5):
+        await client.post("/api/v1/auth/login", json=payload)
+
+    resp = await client.post("/api/v1/auth/login", json=payload)
+
+    assert resp.status_code == 429
+    assert resp.json()["error_code"] == "TOO_MANY_ATTEMPTS"

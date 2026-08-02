@@ -36,3 +36,12 @@ class RateLimiter:
 
         if count > self.limit:
             raise RateLimitExceeded("Too many attempts. Try again in a moment.")
+
+
+# Shared instances. Registration/login get a tight quota since they're the
+# classic brute-force/credential-stuffing target; everything else that
+# writes gets a wider net that a real user won't bump into in normal use,
+# but that still bounds abuse (and, for /interviews/{id}/answer, bounds
+# how many real AI-provider calls one IP can trigger per minute).
+auth_rate_limit = RateLimiter(limit=5, window_seconds=60, scope="auth")
+general_write_rate_limit = RateLimiter(limit=30, window_seconds=60, scope="general_write")

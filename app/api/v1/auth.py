@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import get_refresh_token_repository, get_user_repository
-from app.core.rate_limit import RateLimiter
+from app.core.rate_limit import auth_rate_limit, general_write_rate_limit
 from app.models.user import User
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
@@ -10,8 +10,6 @@ from app.schemas.user import UserResponse
 from app.services.auth_service import AuthService
 
 router = APIRouter()
-
-auth_rate_limit = RateLimiter(limit=5, window_seconds=60, scope="auth")
 
 
 def get_auth_service(
@@ -44,7 +42,9 @@ async def login(
     )
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post(
+    "/refresh", response_model=TokenResponse, dependencies=[Depends(general_write_rate_limit)]
+)
 async def refresh(
     payload: RefreshRequest, auth: AuthService = Depends(get_auth_service)
 ) -> TokenResponse:
@@ -57,6 +57,10 @@ async def refresh(
     )
 
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(general_write_rate_limit)],
+)
 async def logout(payload: RefreshRequest, auth: AuthService = Depends(get_auth_service)) -> None:
     await auth.logout(payload.refresh_token)

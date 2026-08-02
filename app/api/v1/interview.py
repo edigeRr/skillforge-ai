@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.ai.factory import get_ai_provider
 from app.api.deps import get_current_user, get_interview_repository, get_question_repository
+from app.core.rate_limit import general_write_rate_limit
 from app.models.interview import Interview
 from app.models.question import Question
 from app.models.user import User
@@ -48,7 +49,12 @@ def _to_detail(interview: Interview, questions: list[Question]) -> InterviewDeta
     )
 
 
-@router.post("", response_model=InterviewResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=InterviewResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(general_write_rate_limit)],
+)
 async def start_interview(
     payload: StartInterviewRequest,
     current_user: User = Depends(get_current_user),
@@ -64,7 +70,11 @@ async def start_interview(
     )
 
 
-@router.post("/{interview_id}/answer", response_model=AnswerResponse)
+@router.post(
+    "/{interview_id}/answer",
+    response_model=AnswerResponse,
+    dependencies=[Depends(general_write_rate_limit)],
+)
 async def answer_question(
     interview_id: UUID,
     payload: AnswerRequest,
@@ -84,7 +94,11 @@ async def answer_question(
     )
 
 
-@router.post("/{interview_id}/finish", response_model=InterviewDetailResponse)
+@router.post(
+    "/{interview_id}/finish",
+    response_model=InterviewDetailResponse,
+    dependencies=[Depends(general_write_rate_limit)],
+)
 async def finish_interview(
     interview_id: UUID,
     current_user: User = Depends(get_current_user),

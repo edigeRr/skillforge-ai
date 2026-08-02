@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_current_user, get_user_repository
+from app.core.rate_limit import general_write_rate_limit
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UpdateProfileRequest, UserResponse
@@ -13,7 +14,7 @@ async def get_my_profile(current_user: User = Depends(get_current_user)) -> User
     return current_user
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/me", response_model=UserResponse, dependencies=[Depends(general_write_rate_limit)])
 async def update_my_profile(
     payload: UpdateProfileRequest,
     current_user: User = Depends(get_current_user),

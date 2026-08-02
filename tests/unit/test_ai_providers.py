@@ -109,8 +109,9 @@ async def test_anthropic_raises_after_exhausting_retries(monkeypatch):
     client = _client_with_handler("https://api.anthropic.com", handler)
     provider = AnthropicProvider(api_key="test-key", client=client, max_retries=1)
 
-    with pytest.raises(AIProviderError):
+    with pytest.raises(AIProviderError) as exc_info:
         await provider.generate_question("python", "junior", [])
+    assert exc_info.value.error_code == "AI_PROVIDER_UNAVAILABLE"
     await provider.aclose()
 
 
