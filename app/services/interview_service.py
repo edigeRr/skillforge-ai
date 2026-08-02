@@ -5,8 +5,10 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 
 from app.ai.base_provider import BaseAIProvider
+from app.core.cache_keys import dashboard_stats_key
 from app.core.config import get_settings
 from app.core.exceptions import ConflictError, NotFoundError
+from app.db.redis import redis_client
 from app.models.interview import Interview
 from app.models.question import Question
 from app.repositories.interview_repository import InterviewRepository
@@ -146,3 +148,4 @@ class InterviewService:
         interview.status = "completed"
         interview.finished_at = datetime.now(UTC)
         await self.interviews.add(interview)
+        await redis_client.delete(dashboard_stats_key(interview.user_id))
