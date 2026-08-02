@@ -46,3 +46,13 @@ class InterviewRepository(BaseRepository[Interview]):
             .limit(page_size)
         )
         return list(result.scalars().all()), total
+
+    async def stats_for_user(self, user_id: UUID) -> tuple[int, float | None]:
+        """Returns (total completed interviews, average score) for the user."""
+        result = await self.session.execute(
+            select(func.count(Interview.id), func.avg(Interview.score)).where(
+                Interview.user_id == user_id, Interview.status == "completed"
+            )
+        )
+        total, avg_score = result.one()
+        return total, float(avg_score) if avg_score is not None else None
