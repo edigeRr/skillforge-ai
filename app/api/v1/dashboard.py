@@ -17,11 +17,15 @@ def get_dashboard_service(
     return DashboardService(interviews, questions)
 
 
-@router.get("/stats", response_model=DashboardStatsResponse)
+@router.get("/stats", response_model=DashboardStatsResponse, summary="View your stats")
 async def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
     service: DashboardService = Depends(get_dashboard_service),
 ) -> DashboardStatsResponse:
+    """Total completed interviews, average score, and your strongest/weakest
+    topics (a topic needs at least 2 scored answers to be surfaced - see
+    requirements.md, FR-5.1). Cached for 5 minutes per user, invalidated
+    the moment an interview completes."""
     stats = await service.get_stats(current_user.id)
     return DashboardStatsResponse(
         total_interviews=stats.total_interviews,

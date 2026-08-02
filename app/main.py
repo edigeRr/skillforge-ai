@@ -11,7 +11,16 @@ from app.core.middleware import RequestIDMiddleware
 settings = get_settings()
 configure_logging()
 
-app = FastAPI(title=settings.APP_NAME, version="0.1.0")
+app = FastAPI(
+    title=settings.APP_NAME,
+    version="1.0.0",
+    description=(
+        "AI-powered mock technical interview platform. Register, log in with "
+        "the **Authorize** button above, start an interview, and answer "
+        "questions right from this page - no separate frontend needed. "
+        "Full docs: https://github.com/edigeRr/skillforge-ai"
+    ),
+)
 
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(

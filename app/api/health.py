@@ -7,8 +7,11 @@ from app.db.session import check_db_connection
 router = APIRouter()
 
 
-@router.get("/health", tags=["health"])
+@router.get("/health", tags=["health"], summary="Health check")
 async def health() -> JSONResponse:
+    """No auth required. Checks live connectivity to Postgres and Redis,
+    not just that the process is running - returns 503 if either is
+    unreachable."""
     db_ok = await check_db_connection()
     redis_ok = await check_redis_connection()
     healthy = db_ok and redis_ok
