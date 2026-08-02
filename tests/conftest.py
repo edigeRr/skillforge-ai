@@ -23,3 +23,17 @@ async def _clean_state():
         await conn.run_sync(Base.metadata.create_all)
     await redis_client.flushdb()
     yield
+
+
+async def register_and_login(
+    client: AsyncClient, email: str, password: str = "Str0ngPass1"
+) -> dict[str, str]:
+    """Shared by any test file that needs an authenticated user without
+    caring about the auth flow itself."""
+    await client.post(
+        "/api/v1/auth/register", json={"email": email, "password": password, "name": "Test User"}
+    )
+    login_resp = await client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
+    return {"Authorization": f"Bearer {login_resp.json()['access_token']}"}

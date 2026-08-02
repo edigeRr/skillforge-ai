@@ -14,25 +14,16 @@ import os
 
 import pytest
 
+from tests.conftest import register_and_login
+
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_LIVE_AI_TESTS") != "1",
     reason="Set RUN_LIVE_AI_TESTS=1 (and AI_PROVIDER + the matching API key) to hit a real LLM.",
 )
 
 
-async def _register_and_login(client, email: str) -> dict[str, str]:
-    await client.post(
-        "/api/v1/auth/register",
-        json={"email": email, "password": "Str0ngPass1", "name": "Live Test"},
-    )
-    login_resp = await client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "Str0ngPass1"}
-    )
-    return {"Authorization": f"Bearer {login_resp.json()['access_token']}"}
-
-
 async def test_full_interview_against_a_real_provider(client):
-    headers = await _register_and_login(client, "live-ai-test@example.com")
+    headers = await register_and_login(client, "live-ai-test@example.com")
 
     start = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "middle"}, headers=headers
