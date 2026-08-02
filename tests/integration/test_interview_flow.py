@@ -1,22 +1,11 @@
 from app.core.config import get_settings
+from tests.conftest import register_and_login
 
 settings = get_settings()
 
 
-async def _register_and_login(client, email: str) -> dict[str, str]:
-    await client.post(
-        "/api/v1/auth/register",
-        json={"email": email, "password": "Str0ngPass1", "name": "Test User"},
-    )
-    login_resp = await client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "Str0ngPass1"}
-    )
-    token = login_resp.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
-
 async def test_full_interview_lifecycle(client):
-    headers = await _register_and_login(client, "interviewer@example.com")
+    headers = await register_and_login(client, "interviewer@example.com")
 
     start_resp = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "junior"}, headers=headers
@@ -61,7 +50,7 @@ async def test_full_interview_lifecycle(client):
 
 
 async def test_start_rejects_second_active_interview(client):
-    headers = await _register_and_login(client, "twice@example.com")
+    headers = await register_and_login(client, "twice@example.com")
     first = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "junior"}, headers=headers
     )
@@ -75,8 +64,8 @@ async def test_start_rejects_second_active_interview(client):
 
 
 async def test_answer_rejects_non_owner(client):
-    owner_headers = await _register_and_login(client, "owner@example.com")
-    other_headers = await _register_and_login(client, "other@example.com")
+    owner_headers = await register_and_login(client, "owner@example.com")
+    other_headers = await register_and_login(client, "other@example.com")
 
     start = await client.post(
         "/api/v1/interviews",
@@ -92,10 +81,11 @@ async def test_answer_rejects_non_owner(client):
         headers=other_headers,
     )
     assert resp.status_code == 404
+    assert resp.json()["error_code"] == "NOT_FOUND"
 
 
 async def test_answer_rejects_already_answered_question(client):
-    headers = await _register_and_login(client, "reanswer@example.com")
+    headers = await register_and_login(client, "reanswer@example.com")
     start = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "junior"}, headers=headers
     )
@@ -119,7 +109,7 @@ async def test_answer_rejects_already_answered_question(client):
 
 
 async def test_finish_early_computes_partial_score(client):
-    headers = await _register_and_login(client, "early@example.com")
+    headers = await register_and_login(client, "early@example.com")
     start = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "junior"}, headers=headers
     )
@@ -142,7 +132,7 @@ async def test_finish_early_computes_partial_score(client):
 
 
 async def test_finish_rejects_when_already_completed(client):
-    headers = await _register_and_login(client, "doublefinish@example.com")
+    headers = await register_and_login(client, "doublefinish@example.com")
     start = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "junior"}, headers=headers
     )
@@ -157,7 +147,7 @@ async def test_finish_rejects_when_already_completed(client):
 
 
 async def test_history_is_paginated_and_filterable(client):
-    headers = await _register_and_login(client, "history@example.com")
+    headers = await register_and_login(client, "history@example.com")
 
     start1 = await client.post(
         "/api/v1/interviews", json={"language": "python", "difficulty": "junior"}, headers=headers
@@ -176,3 +166,41 @@ async def test_history_is_paginated_and_filterable(client):
     filtered_resp = await client.get("/api/v1/interviews?language=java", headers=headers)
     assert filtered_resp.json()["total"] == 1
     assert filtered_resp.json()["items"][0]["language"] == "java"
+
+
+async def test_history_pagination_empty_list(client):
+    headers = await register_and_login(client, "emptyhistory@example.com")
+
+    resp = await client.get("/api/v1/interviews", headers=headers)
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["items"] == []
+    assert body["total"] == 0
+    assert body["page"] == 1
+
+
+async def test_history_pagination_last_page_has_remainder(client):
+    headers = await register_and_login(client, "lastpage@example.com")
+    for _ in range(3):
+        start = await client.post(
+            "/api/v1/interviews",
+            json={"language": "python", "difficulty": "junior"},
+            headers=headers,
+        )
+        await client.post(f"/api/v1/interviews/{start.json()['id']}/finish", headers=headers)
+
+    resp = await client.get("/api/v1/interviews?page=2&page_size=2", headers=headers)
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 3
+    assert len(body["items"]) == 1  # 3 total, page_size=2 -> page 2 has just the remainder
+
+
+async def test_history_pagination_rejects_page_size_over_the_cap(client):
+    headers = await register_and_login(client, "pagesizecap@example.com")
+
+    resp = await client.get("/api/v1/interviews?page_size=500", headers=headers)
+
+    assert resp.status_code == 422  # api.md caps page_size at 100
