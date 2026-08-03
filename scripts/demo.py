@@ -19,6 +19,24 @@ import httpx
 DEFAULT_BASE_URL = "http://127.0.0.1:8000"
 
 
+async def _post_with_429_retry(
+    client: httpx.AsyncClient, path: str, json: dict, *, max_wait_seconds: float = 90.0
+) -> httpx.Response:
+    """Auth endpoints share a tight rate-limit budget (SF-76: 5/min/IP,
+    deliberately strict since they're the classic brute-force target).
+    Running this demo repeatedly in quick succession can bump into that -
+    wait it out rather than crash with a confusing KeyError."""
+    deadline = time.monotonic() + max_wait_seconds
+    while True:
+        response = await client.post(path, json=json)
+        if response.status_code != 429:
+            return response
+        if time.monotonic() >= deadline:
+            return response
+        print(f"  (rate limited on {path}, waiting 5s - this is expected if you just ran this)")
+        await asyncio.sleep(5)
+
+
 def step(text: str, pause: float) -> None:
     print(f"\n>>> {text}")
     time.sleep(pause)
@@ -40,15 +58,16 @@ async def main(base_url: str, pause: float) -> None:
         email = f"demo-{uuid.uuid4().hex[:8]}@example.com"
 
         step(f"Registering {email}...", pause)
-        register = await client.post(
+        register = await _post_with_429_retry(
+            client,
             "/api/v1/auth/register",
-            json={"email": email, "password": "Str0ngPass1", "name": "Demo User"},
+            {"email": email, "password": "Str0ngPass1", "name": "Demo User"},
         )
         show("Registered", register.json(), pause)
 
         step("Logging in...", pause)
-        login = await client.post(
-            "/api/v1/auth/login", json={"email": email, "password": "Str0ngPass1"}
+        login = await _post_with_429_retry(
+            client, "/api/v1/auth/login", {"email": email, "password": "Str0ngPass1"}
         )
         headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
         print("Got an access token.")
