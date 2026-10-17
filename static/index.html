@@ -3,10 +3,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SkillForge AI</title>
+  <title>SkillForge AI — Practice technical interviews under real pressure</title>
+  <meta name="description" content="AI-run mock technical interviews. Pick a language and a difficulty, answer live, get scored and specific feedback, and track how you're trending." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/home.css" />
 </head>
 <body>
-  <h1>SkillForge AI</h1>
-  <p>Frontend under construction — backend routing is wired up (v1.1). Styling lands in v1.2.</p>
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span>SkillForge AI</a>
+      <div class="nav-links">
+        <a href="/#how-it-works">How it works</a>
+        <a href="/login" data-auth="logged-out">Log in</a>
+        <a href="/register" data-auth="logged-out" class="btn btn-primary">Start practicing</a>
+        <a href="/dashboard" data-auth="logged-in">Dashboard</a>
+        <a href="/interview" data-auth="logged-in">Interview</a>
+        <a href="#" data-auth="logged-in" data-action="logout">Log out</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <p class="eyebrow">Mock technical interviews, run by AI</p>
+        <h1>Practice under pressure.<br /><span class="accent">Get judged.</span> Get sharper.</h1>
+        <p class="hero-lede">
+          Choose a language and a difficulty, answer real questions one at a time, and get scored
+          and specific feedback on every answer — the way an actual interviewer would push back.
+        </p>
+        <p class="hero-question" data-hero-typewriter="Explain the GIL and how it affects multi-threaded CPU-bound code."></p>
+        <div class="hero-actions">
+          <a href="/register" class="btn btn-primary" data-auth="logged-out">Start practicing &rarr;</a>
+          <a href="/interview" class="btn btn-primary" data-auth="logged-in">Start an interview &rarr;</a>
+          <a href="/login" class="btn btn-secondary" data-auth="logged-out">I already have an account</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="lang-row">
+      <div class="container">
+        <p class="eyebrow">Supported languages</p>
+        <ul class="lang-list">
+          <li>Python</li>
+          <li>Java</li>
+          <li>C++</li>
+          <li>JavaScript</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="process" id="how-it-works">
+      <div class="container">
+        <div class="process-heading">
+          <p class="eyebrow">How it works</p>
+          <h2>Three stages, same as tempering steel.</h2>
+        </div>
+        <div class="process-steps">
+          <div class="process-step" data-heat="warm">
+            <p class="eyebrow">Choose your heat</p>
+            <h3>Pick a language and difficulty</h3>
+            <p>Junior, middle, or senior — the questions get sharper as the heat goes up.</p>
+          </div>
+          <div class="process-step" data-heat="strike">
+            <p class="eyebrow">Answer live</p>
+            <h3>Work through it question by question</h3>
+            <p>No multiple choice. Write out your reasoning the way you would out loud.</p>
+          </div>
+          <div class="process-step" data-heat="temper">
+            <p class="eyebrow">Get tempered</p>
+            <h3>See your score and what to fix</h3>
+            <p>Specific feedback per answer, plus which topics are actually holding you back.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>SkillForge AI</span>
+      <span class="text-faint">Built as a portfolio project — <a href="https://github.com/edigeRr/skillforge-ai">source on GitHub</a></span>
+    </div>
+  </footer>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/nav.js"></script>
+  <script src="/static/js/hero.js"></script>
 </body>
 </html>
