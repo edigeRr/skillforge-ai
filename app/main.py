@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api import health
 from app.api.v1.router import api_router
@@ -7,6 +8,7 @@ from app.core.config import get_settings
 from app.core.exceptions import AppException, app_exception_handler
 from app.core.logging import configure_logging
 from app.core.middleware import RequestIDMiddleware
+from app.web.routes import router as web_router
 
 settings = get_settings()
 configure_logging()
@@ -33,5 +35,8 @@ app.add_middleware(
 
 app.add_exception_handler(AppException, app_exception_handler)
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 app.include_router(health.router)
 app.include_router(api_router)
+app.include_router(web_router)

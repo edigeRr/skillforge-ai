@@ -14,6 +14,7 @@ services:
         condition: service_healthy
     volumes:
       - ./app:/app/app
+      - ./static:/app/static
 
   db:
     image: postgres:16-alpine

@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM deps AS runtime
 RUN useradd --create-home appuser
 COPY app ./app
+COPY static ./static
 COPY alembic ./alembic
 COPY alembic.ini .
 USER appuser
