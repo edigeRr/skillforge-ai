@@ -1,0 +1,14 @@
+{
+  "name": "skillforge-ai-frontend-tests",
+  "private": true,
+  "description": "Runs the real static/js files against the real static/*.html pages in jsdom",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}
