@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create an account — SkillForge AI</title>
+  <meta name="description" content="Create a free SkillForge AI account and start practicing mock technical interviews." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/forms.css" />
+  <link rel="stylesheet" href="/static/css/auth.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span>SkillForge AI</a>
+      <div class="nav-links">
+        <a href="/login" data-auth="logged-out">Log in</a>
+        <a href="/dashboard" data-auth="logged-in">Dashboard</a>
+        <a href="/interview" data-auth="logged-in">Interview</a>
+        <a href="#" data-auth="logged-in" data-action="logout">Log out</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="auth-section container">
+      <div class="auth-card">
+        <p class="eyebrow">Get started</p>
+        <h1>Create your account</h1>
+        <p class="auth-lede">Takes about a minute. No credit card, no verification email to wait on.</p>
+
+        <div id="form-error" class="banner banner-error" role="alert" hidden></div>
+
+        <form id="register-form">
+          <div class="form-group">
+            <label class="form-label" for="name">Name</label>
+            <input class="form-input" id="name" name="name" type="text" required maxlength="100" pattern=".*\S.*" title="Enter your name" autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input class="form-input" id="email" name="email" type="email" required autocomplete="email" autocapitalize="none" spellcheck="false" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input class="form-input" id="password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="password-hint" />
+            <p class="form-hint" id="password-hint">8-72 characters, at least one letter and one digit.</p>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        </form>
+
+        <p class="auth-switch">Already have an account? <a href="/login">Log in</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>SkillForge AI</span>
+      <span class="text-faint">Built as a portfolio project — <a href="https://github.com/edigeRr/skillforge-ai">source on GitHub</a></span>
+    </div>
+  </footer>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/nav.js"></script>
+  <script src="/static/js/register.js"></script>
+</body>
+</html>
