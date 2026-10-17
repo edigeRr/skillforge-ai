@@ -21,3 +21,8 @@ def _page(filename: str) -> FileResponse:
 @router.get("/")
 async def home() -> FileResponse:
     return _page("index.html")
+
+
+@router.get("/register")
+async def register_page() -> FileResponse:
+    return _page("register.html")
