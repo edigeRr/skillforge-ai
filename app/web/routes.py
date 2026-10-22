@@ -31,3 +31,18 @@ async def register_page() -> FileResponse:
 @router.get("/login")
 async def login_page() -> FileResponse:
     return _page("login.html")
+
+
+@router.get("/interview")
+async def interview_page() -> FileResponse:
+    return _page("interview.html")
+
+
+@router.get("/history")
+async def history_page() -> FileResponse:
+    return _page("history.html")
+
+
+@router.get("/dashboard")
+async def dashboard_page() -> FileResponse:
+    return _page("dashboard.html")
