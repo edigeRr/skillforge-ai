@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const { api, heatLevel, heatColor, formatScore } = window.SkillForge;
+  const { api, paintScore } = window.SkillForge;
 
   const LANGUAGE_LABELS = { python: "Python", java: "Java", cpp: "C++", javascript: "JavaScript" };
   const LEVEL_LABELS = { junior: "Junior", middle: "Middle", senior: "Senior" };
@@ -54,17 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return "Can't reach the server. Check your connection and try again.";
     }
     return "Something went wrong. Please try again.";
-  }
-
-  function paintScore(element, score) {
-    element.querySelector(".score-value").textContent = formatScore(score);
-    const meter = element.querySelector(".score-meter");
-    meter.setAttribute("aria-valuenow", String(score));
-    meter.setAttribute("aria-valuetext", `${formatScore(score)} out of 10`);
-    const fill = element.querySelector(".score-fill");
-    fill.style.width = `${Math.min(10, Math.max(0, score)) * 10}%`;
-    fill.style.background = heatColor(score);
-    element.dataset.heat = String(heatLevel(score));
   }
 
   function setMeta(interview) {
