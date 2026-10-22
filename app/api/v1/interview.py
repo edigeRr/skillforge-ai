@@ -108,6 +108,43 @@ async def start_interview(
     )
 
 
+# How to verify the interview session
+# ===================================
+#
+# 1. In the browser (start the app as in the registration block in app/api/v1/auth.py)
+#    Start an interview at /interview. Expected: /interview/<id> shows "Question 1", the
+#    question and an answer box with the cursor in it.
+#    Submit only spaces. Expected: "Write an answer before submitting." and nothing is sent.
+#    Submit a real answer. Expected: the score out of 10, a bar filled and colored on the
+#    heat scale (darker red for low scores, white-gold for 10), the feedback, and a
+#    "Next question" button that opens "Question 2" with an empty box.
+#    Reload the page mid-interview. Expected: it reopens on the first unanswered question.
+#    Press "Finish early" and confirm, or answer every question and press "See results".
+#    Expected: "Interview complete" with the overall score and every question, your answer,
+#    its score and feedback; unanswered ones say "Not answered."
+#    Open /interview/<some other id>. Expected: "Interview not found".
+#
+# 2. Straight against the API (macOS, Linux, Git Bash), with an interview started as in the
+#    block above
+#      curl -i -X POST http://localhost:8000/api/v1/interviews/<id>/answer \
+#        -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" \
+#        -d '{"question_id": "<current_question.id>", "answer": "My answer"}'
+#    Expected: 200 with score, feedback, next_question and interview_status "in_progress".
+#    Send the same question_id again: 409 QUESTION_ALREADY_ANSWERED.
+#      curl -i -X POST -H "Authorization: Bearer <access_token>" \
+#        http://localhost:8000/api/v1/interviews/<id>/finish
+#    Expected: 200 with status "completed" and the score. Repeat it: 409
+#    INTERVIEW_NOT_IN_PROGRESS.
+#
+#    Without Docker, scripts/preview_server.py runs the same pages against an in-memory API
+#    (see docs/frontend.md > Previewing without Docker).
+#
+# 3. Automated tests (same test database as in the registration block)
+#      pytest tests/integration/test_interview_flow.py -q
+#      cd tests-frontend
+#      npm test
+
+
 @router.post(
     "/{interview_id}/answer",
     response_model=AnswerResponse,
