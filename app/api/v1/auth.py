@@ -78,6 +78,39 @@ async def register(payload: RegisterRequest, auth: AuthService = Depends(get_aut
     return await auth.register(payload.email, payload.password, payload.name)
 
 
+# How to verify the log-in feature
+# ================================
+#
+# 1. In the browser (start the app as in step 1 of the registration block above and create
+#    an account at /register first)
+#    Press "Log out" in the nav, then open http://localhost:8000/login, enter the same email
+#    and password and press "Log in".
+#    Expected: you land on the home page, the nav shows Dashboard / Interview / Log out, and
+#    both tokens are back in the browser (DevTools > Application > Local Storage).
+#    Log out again and enter a wrong password. Expected: "Incorrect email or password." above
+#    the form, the button is usable again, and nothing is stored.
+#
+# 2. Straight against the API (macOS, Linux, Git Bash)
+#      curl -i -X POST http://localhost:8000/api/v1/auth/login \
+#        -H "Content-Type: application/json" \
+#        -d '{"email": "demo@example.com", "password": "Str0ngPass1"}'
+#    Expected: 200 with access_token, refresh_token, token_type "bearer" and expires_in.
+#    Send the password "WrongPass1": 401 INVALID_CREDENTIALS. An unknown email gives the same
+#    401, so the response never reveals which emails have accounts.
+#
+#    Windows PowerShell:
+#      Invoke-RestMethod -Method Post -Uri http://localhost:8000/api/v1/auth/login `
+#        -ContentType "application/json" `
+#        -Body '{"email": "demo@example.com", "password": "Str0ngPass1"}'
+#
+#    Login shares the limit of 5 requests per minute per IP with register. A 429 means: wait.
+#
+# 3. Automated tests (same test database as in step 3 of the registration block above)
+#      pytest tests/integration/test_auth_flow.py tests/integration/test_pages.py -q
+#      cd tests-frontend
+#      npm test
+
+
 @router.post(
     "/login",
     response_model=TokenResponse,
