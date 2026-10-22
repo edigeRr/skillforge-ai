@@ -26,9 +26,9 @@ def get_auth_service(
 #      docker compose up --build
 #      docker compose exec api alembic upgrade head        (first run only)
 #    Open http://localhost:8000/register, fill in the form and press "Create account".
-#    Expected: you land on the home page, the nav shows Dashboard / Interview / Log out, and
-#    both tokens are stored in the browser (DevTools > Application > Local Storage).
-#    Open /register again and use the same email. Expected: "An account with that email
+#    Expected: you land on the interview start page, the nav shows Dashboard / Interview /
+#    Log out, and both tokens are stored in the browser (DevTools > Application > Local
+#    Storage). Open /register again and use the same email. Expected: "An account with that email
 #    already exists" above the form, with the email field highlighted.
 #
 # 2. Straight against the API (macOS, Linux, Git Bash)

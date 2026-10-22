@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const { api, setTokens } = window.SkillForge;
 
-  const AFTER_REGISTER_URL = "/";
+  const AFTER_REGISTER_URL = "/interview";
 
   const form = document.querySelector("#register-form");
   const banner = document.querySelector("#form-error");
