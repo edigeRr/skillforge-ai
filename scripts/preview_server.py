@@ -184,6 +184,7 @@ def to_detail(interview: Interview) -> InterviewDetailResponse:
         score=interview.score,
         created_at=interview.created_at,
         finished_at=interview.finished_at,
+        total_questions=question_count,
         questions=[
             QuestionDetailResponse.model_validate(q, from_attributes=True)
             for q in interview.questions
@@ -257,6 +258,7 @@ async def start_interview(
         language=interview.language,
         difficulty=interview.difficulty,
         status=interview.status,
+        total_questions=question_count,
         current_question=to_question(question),
     )
 
