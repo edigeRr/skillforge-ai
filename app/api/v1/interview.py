@@ -117,12 +117,12 @@ async def start_interview(
 # ===================================
 #
 # 1. In the browser (start the app as in the registration block in app/api/v1/auth.py)
-#    Start an interview at /interview. Expected: /interview/<id> shows "Question 1", the
+#    Start an interview at /interview. Expected: /interview/<id> shows "Question 1 of 5", the
 #    question and an answer box with the cursor in it.
 #    Submit only spaces. Expected: "Write an answer before submitting." and nothing is sent.
 #    Submit a real answer. Expected: the score out of 10, a bar filled and colored on the
 #    heat scale (darker red for low scores, white-gold for 10), the feedback, and a
-#    "Next question" button that opens "Question 2" with an empty box.
+#    "Next question" button that opens "Question 2 of 5" with an empty box.
 #    Reload the page mid-interview. Expected: it reopens on the first unanswered question.
 #    Press "Finish early" and confirm, or answer every question and press "See results".
 #    Expected: "Interview complete" with the overall score and every question, your answer,

@@ -78,9 +78,11 @@ Response `201`:
   "language": "python",
   "difficulty": "middle",
   "status": "in_progress",
+  "total_questions": 5,
   "current_question": { "id": "uuid", "order_index": 1, "topic": "arrays", "question": "..." }
 }
 ```
+`total_questions` is how many questions the interview asks in all (the `INTERVIEW_QUESTION_COUNT` setting); `order_index` counts from 1, so the first question is "1 of 5".
 Errors: `409 INTERVIEW_ALREADY_IN_PROGRESS`.
 
 ### POST /interviews/{id}/answer
@@ -104,7 +106,7 @@ Errors: `404` (interview/question not found or not owned by caller), `409 QUESTI
 Ends the interview early. Response `200`: full interview object with `score` computed from answered questions only.
 
 ### GET /interviews/{id}
-Full interview detail: all questions, answers, feedback, per-question scores, overall score.
+Full interview detail: all questions, answers, feedback, per-question scores, overall score, and `total_questions`.
 
 ## 6. History
 
