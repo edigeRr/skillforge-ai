@@ -33,6 +33,7 @@ Plain HTML, CSS and JavaScript served by the same FastAPI app — no framework, 
 | `/interview/{id}` | One question at a time, the score on the heat scale with feedback, then a full summary |
 | `/history` | Past interviews with filters and pages, kept in the address bar |
 | `/dashboard` | Completed interviews, average score, strongest and weakest topics |
+| `/admin` | For admins: create accounts and change roles |
 
 Members-only pages send logged-out visitors to `/login`, and unknown addresses get a proper 404 page. Details in [docs/frontend.md](docs/frontend.md).
 
@@ -83,9 +84,9 @@ docker compose up -d db redis
 pytest --cov=app --cov-report=term-missing
 ```
 
-79 backend tests (unit + integration, against a real Postgres/Redis, not mocks-all-the-way-down), with coverage of `app/services` and `app/api` enforced at 80%+ as a CI gate. One of them is a live-provider test, skipped unless `RUN_LIVE_AI_TESTS=1` and a real API key are set, so CI never needs credentials.
+94 backend tests (unit + integration, against a real Postgres/Redis, not mocks-all-the-way-down), with coverage of `app/services` and `app/api` enforced at 80%+ as a CI gate. One of them is a live-provider test, skipped unless `RUN_LIVE_AI_TESTS=1` and a real API key are set, so CI never needs credentials.
 
-The frontend has 89 tests that run the real `static/js` files against the real pages in jsdom, with the API replaced by a scripted fake (Node.js 20+):
+The frontend has 97 tests that run the real `static/js` files against the real pages in jsdom, with the API replaced by a scripted fake (Node.js 20+):
 
 ```bash
 cd tests-frontend
@@ -111,6 +112,7 @@ Full spec with every endpoint, request/response schema, and error code: [docs/ap
 | Profile | `GET/PUT /profile/me` |
 | Interview | `POST /interviews`, `/interviews/{id}/answer`, `/interviews/{id}/finish`, `GET /interviews/{id}`, `GET /interviews` |
 | Dashboard | `GET /dashboard/stats` |
+| Admin | `GET/POST /admin/users`, `PATCH /admin/users/{id}/role` (admin role only) |
 
 ## Docs
 
