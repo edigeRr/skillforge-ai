@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-PAGES = ["/", "/register"]
+PAGES = ["/", "/register", "/login"]
 ASSET_REFERENCE = re.compile(r'(?:href|src)="(/static/[^"]+)"')
 
 
@@ -30,4 +30,5 @@ async def test_pages_are_not_part_of_the_openapi_schema(client):
     schema = (await client.get("/openapi.json")).json()
 
     assert "/register" not in schema["paths"]
+    assert "/login" not in schema["paths"]
     assert "/" not in schema["paths"]
