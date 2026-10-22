@@ -18,6 +18,8 @@ POST /api/v1/dev/make-admin {"email": "..."} gives an account the admin role
 """
 
 import argparse
+import base64
+import json
 import secrets
 import sys
 from dataclasses import dataclass, field
@@ -131,11 +133,21 @@ store = Store()
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def issue_tokens(user_id: UUID) -> TokenResponse:
-    access_token = secrets.token_urlsafe(24)
+def jwt_shaped(claims: dict[str, str]) -> str:
+    """Unsigned, but shaped like the real access token so the frontend can read
+    the role claim the same way."""
+
+    def part(data: dict[str, str]) -> str:
+        return base64.urlsafe_b64encode(json.dumps(data).encode()).rstrip(b"=").decode()
+
+    return f"{part({'alg': 'none'})}.{part(claims)}.{secrets.token_urlsafe(24)}"
+
+
+def issue_tokens(user: User) -> TokenResponse:
+    access_token = jwt_shaped({"sub": str(user.id), "role": user.role})
     refresh_token = secrets.token_urlsafe(32)
-    store.access_tokens[access_token] = user_id
-    store.refresh_tokens[refresh_token] = user_id
+    store.access_tokens[access_token] = user.id
+    store.refresh_tokens[refresh_token] = user.id
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -221,7 +233,7 @@ async def login(payload: LoginRequest) -> TokenResponse:
     user = store.users.get(payload.email)
     if user is None or user.password != payload.password:
         raise ApiError(401, "INVALID_CREDENTIALS", "Invalid email or password.")
-    return issue_tokens(user.id)
+    return issue_tokens(user)
 
 
 @auth.post("/refresh", response_model=TokenResponse)
@@ -229,7 +241,7 @@ async def refresh(payload: RefreshRequest) -> TokenResponse:
     user_id = store.refresh_tokens.pop(payload.refresh_token, None)
     if user_id is None:
         raise ApiError(401, "INVALID_REFRESH_TOKEN", "Refresh token is invalid or expired.")
-    return issue_tokens(user_id)
+    return issue_tokens(next(u for u in store.users.values() if u.id == user_id))
 
 
 @auth.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
