@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/forms.css" />
+  <link rel="stylesheet" href="/static/css/score.css" />
+  <link rel="stylesheet" href="/static/css/history.css" />
 </head>
 <body>
   <nav class="site-nav">
@@ -26,10 +29,69 @@
   </nav>
 
   <main>
-    <section class="page-section container">
+    <section class="page-section container history">
       <p class="eyebrow">History</p>
       <h1>Your interviews</h1>
-      <p class="text-muted">A list of your past interviews and their scores arrives here soon.</p>
+
+      <form id="history-filters" class="history-filters" aria-label="Filter interviews">
+        <div class="form-group">
+          <label class="form-label" for="filter-language">Language</label>
+          <select class="form-input" id="filter-language" name="language">
+            <option value="">All languages</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="javascript">JavaScript</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="filter-difficulty">Level</label>
+          <select class="form-input" id="filter-difficulty" name="difficulty">
+            <option value="">All levels</option>
+            <option value="junior">Junior</option>
+            <option value="middle">Middle</option>
+            <option value="senior">Senior</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="filter-status">Status</label>
+          <select class="form-input" id="filter-status" name="status">
+            <option value="">Any status</option>
+            <option value="completed">Completed</option>
+            <option value="in_progress">In progress</option>
+            <option value="abandoned">Abandoned</option>
+          </select>
+        </div>
+      </form>
+
+      <div id="form-error" class="banner banner-error" role="alert" hidden></div>
+
+      <p class="text-muted" id="history-loading">Loading your interviews...</p>
+
+      <ol class="history-list" id="history-list" aria-label="Interviews, newest first"></ol>
+
+      <div id="history-empty" class="history-state" hidden>
+        <p>You haven't done any interviews yet.</p>
+        <a class="btn btn-primary" href="/interview">Start your first interview</a>
+      </div>
+
+      <div id="history-no-match" class="history-state" hidden>
+        <p>No interviews match these filters.</p>
+        <button type="button" class="btn btn-secondary" id="clear-filters">Clear filters</button>
+      </div>
+
+      <nav class="pagination" id="pagination" aria-label="Pages" hidden>
+        <button type="button" class="btn btn-secondary" id="prev-page">Previous</button>
+        <span class="page-status" id="page-status" aria-live="polite">Page 1 of 1</span>
+        <button type="button" class="btn btn-secondary" id="next-page">Next</button>
+      </nav>
+
+      <template id="score-template">
+        <div class="score score-compact">
+          <p class="score-number"><span class="score-value">0.0</span><span class="score-max"> / 10</span></p>
+          <div class="score-meter" role="meter" aria-label="Score" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="score-fill"></div></div>
+        </div>
+      </template>
     </section>
   </main>
 
@@ -41,5 +103,7 @@
   </footer>
 
   <script src="/static/js/nav.js"></script>
+  <script src="/static/js/heat.js"></script>
+  <script src="/static/js/history.js"></script>
 </body>
 </html>
