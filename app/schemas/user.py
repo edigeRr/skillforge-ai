@@ -10,6 +10,7 @@ class UserResponse(BaseModel):
     id: UUID
     email: str
     name: str
+    role: str
     created_at: datetime
 
 
