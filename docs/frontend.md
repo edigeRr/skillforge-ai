@@ -25,7 +25,7 @@ static/
 ├── interview.html       interview start form: language and level (members only)
 ├── session.html         one interview session at /interview/{id}: question, answer, score, summary (members only)
 ├── history.html         past interviews with filters and pages (members only)
-├── dashboard.html       progress overview (members only, placeholder for now)
+├── dashboard.html       progress overview: totals, average, strongest and weakest topics (members only)
 ├── css/
 │   ├── style.css         shared design tokens, typography, base components (buttons, cards, chips, nav)
 │   ├── forms.css          form fields, labels, hints and the invalid state
@@ -34,6 +34,7 @@ static/
 │   ├── score.css          score meter shared by the session and history pages
 │   ├── session.css        question, answer box, summary
 │   ├── history.css        history list, filters, pagination
+│   ├── dashboard.css      dashboard tiles and topic lists
 │   └── home.css           landing-page-specific layout
 └── js/
     ├── api.js             fetch wrapper: token storage, auto-refresh on 401, unified error handling
@@ -45,6 +46,7 @@ static/
     ├── heat.js             heatLevel / heatColor / paintScore: a 0-10 score on the heat scale
     ├── session.js          interview session: answer, score, next question, finish, summary
     ├── history.js          history: list, filters, pages, state kept in the address bar
+    ├── dashboard.js        dashboard: stats, topics, greeting
     └── login.js            log-in form: log in, store tokens, error messages
 
 app/web/
@@ -57,6 +59,7 @@ tests-frontend/
 ├── interview.test.mjs   interview start form tests
 ├── session.test.mjs     interview session tests
 ├── history.test.mjs     history page tests
+├── dashboard.test.mjs   dashboard tests
 └── guard.test.mjs       members-only page guard tests
 ```
 
@@ -111,7 +114,6 @@ These pages load `api.js` and `guard.js` in `<head>`, before the page body. If t
 
 The guard only checks that a token is stored, not that it is still valid. That is enough: an expired token is refreshed by `api.js` on the first `401`, and if the refresh fails too, `api.js` clears the tokens and sends the user to `/login` itself. The guard is a convenience, not a security boundary — every piece of data on these pages comes from API endpoints that check the token on the server.
 
-`/dashboard` is still a placeholder with a heading and one line of text; it gets its real content in its own stage.
 
 ## Starting an interview (`/interview`)
 
@@ -174,6 +176,20 @@ If the user changes filters faster than the server answers, only the newest requ
 
 The score meter (`score.css`) and `paintScore` (in `heat.js`) moved out of the session page so both pages draw scores the same way.
 
+## Dashboard (`/dashboard`)
+
+The page reads `GET /dashboard/stats` and shows:
+
+- **Completed interviews** — the count. Interviews still in progress don't count, same as in the API.
+- **Average score** — on the heat scale, like every other score. If finished interviews have no scored answers, it says "No scored answers yet." instead of 0.
+- **Strongest topics** and **Needs work** — up to three topics each, with their average score. A topic shows up only after at least two scored answers on it (FR-5.1); until then the card explains that instead of staying blank.
+
+The API picks both lists from the same set of topics — the top three and the bottom three — so with three topics or fewer the same topic would land in both. The page drops from "Needs work" any topic already shown under "Strongest topics": calling `arrays` both your best and your worst topic helps no one.
+
+A greeting, "Welcome back, Ada.", comes from `GET /profile/me`. It is loaded separately and is purely decorative: if it fails, the stats still show and no error appears. If the stats fail, the page shows the usual message for `429`, an unreachable server, or anything else. With no finished interviews yet, the stats are replaced by "Finish your first interview to see your stats here" and a "Start an interview" button.
+
+The API caches these stats for five minutes per user, but finishing an interview clears that cache, so the dashboard is current right after the summary screen.
+
 ## Tests
 
 **Pages (backend).** `tests/integration/test_pages.py` checks that every page route returns HTML, that every `/static/...` file a page references is actually served, and that the page routes stay out of the OpenAPI schema. It runs with the rest of the backend suite.
@@ -197,6 +213,8 @@ The interview start tests cover starting with the chosen language and level (wit
 The session tests cover opening on the first unanswered question, sending the trimmed answer, the score meter (value, heat level, color, width, `aria-valuenow`), moving to the next question, loading the summary after the last answer, opening a finished interview straight on its summary, answers rendered as text rather than HTML, the no-score case, the "N of M" counter and its fallback, the not-found view, a failed load, the blank-answer check, recovering from a `409`, finishing early with and without confirmation, every error message, the busy lock, and the heat-level steps.
 
 The history tests cover the first load and the row links, score versus status on each row, the empty and no-match states with "Clear filters", filters resetting to page 1 and appearing in the address bar, paging, restoring filters and page from the address bar, dropping values the API would reject, falling back from a page past the end, every error message, and ignoring an older response that arrives after a newer one.
+
+The dashboard tests cover the totals, the average on the heat scale and both topic lists, the greeting and what happens when the profile fails, keeping a topic out of both lists, the explanations for empty topic lists and a missing average, the first-interview state, topic names rendered as text, and every error message.
 
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
@@ -224,9 +242,10 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.8** — the interview session: `session.html`, `session.css`, `session.js`, `heat.js`, jsdom tests. Plus `scripts/preview_server.py` for previewing without Docker.
 - **v1.8.1** — `total_questions` in the interview API responses, so the session shows "Question 2 of 5". Also fixed: the session page added 1 to `order_index`, which the API already counts from 1, so the first question showed as "Question 2".
 - **v1.9** — history: `history.html`, `history.css`, `history.js`, jsdom tests; the score meter moved to `score.css` and `paintScore` to `heat.js`.
+- **v1.10** — dashboard: `dashboard.html`, `dashboard.css`, `dashboard.js`, jsdom tests.
 
 ## What's next
 
-- The dashboard page.
+- Polish: a favicon, a 404 page, and a nav that fits on a 375px phone screen (today the brand and "Log out" wrap onto two lines there).
 - An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
 - Running the frontend tests in CI.
