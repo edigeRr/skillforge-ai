@@ -167,6 +167,10 @@ p {
   padding: 0 var(--space-6);
 }
 
+.page-section {
+  padding-block: var(--space-16);
+}
+
 .site-nav {
   border-bottom: 1px solid var(--border);
   padding: var(--space-4) 0;
