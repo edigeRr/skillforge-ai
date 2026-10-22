@@ -1,0 +1,131 @@
+.session {
+  max-width: 760px;
+}
+
+.session h1:focus {
+  outline: none;
+}
+
+.question-label {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.question-text {
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: var(--space-8);
+}
+
+.answer-input {
+  resize: vertical;
+  min-height: 12rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.score {
+  margin: var(--space-4) 0 var(--space-6);
+}
+
+.score-number {
+  font-family: var(--font-mono);
+  margin-bottom: var(--space-2);
+}
+
+.score-value {
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.score-max {
+  color: var(--text-muted);
+}
+
+.score-meter {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border-strong);
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.4s ease;
+}
+
+.score[data-heat="10"] .score-fill {
+  box-shadow: 0 0 12px var(--heat-8);
+}
+
+.feedback {
+  font-size: 1.05rem;
+  margin-bottom: var(--space-8);
+}
+
+.summary-list {
+  list-style: none;
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.summary-topic {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ember-bright);
+  margin-bottom: var(--space-2);
+}
+
+.summary-question {
+  font-weight: 600;
+}
+
+.summary-answer {
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  border-left: 2px solid var(--border-strong);
+  padding-left: var(--space-3);
+}
+
+.score-compact {
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.score-compact .score-value {
+  font-size: 1.25rem;
+}
+
+.score-compact .score-meter {
+  height: 6px;
+}
+
+.summary-feedback {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-fill {
+    transition: none;
+  }
+}
