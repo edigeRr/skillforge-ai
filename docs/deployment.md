@@ -29,55 +29,25 @@ Render was picked here because it hosts a Docker web service, managed Postgres, 
 
 ### Steps
 
-1. Push this repo to GitHub (Render deploys from a Git repo).
-2. In the Render dashboard: **New > Blueprint**, point it at the repo. Render reads `render.yaml` (below) and provisions the web service, database, and Redis together.
-3. Render will prompt for the secret env vars marked `sync: false` in the blueprint (`JWT_SECRET_KEY`, and `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` if you're not using the fake provider) - generate/paste them at that point, not in the YAML file.
-4. After the first deploy, open a shell for the web service (Render dashboard → your service → **Shell**) and run:
-   ```bash
-   alembic upgrade head
-   ```
-5. Your API is live at `https://<service-name>.onrender.com/docs`.
+1. In the Render dashboard: **New > Blueprint**, connect the GitHub repo, branch `main`. Render reads [`render.yaml`](../render.yaml) from the repo root and provisions the web service, Postgres, and Key Value together.
+2. Nothing has to be typed in: `JWT_SECRET_KEY` uses `generateValue: true`, so Render creates a random secret, and `AI_PROVIDER` is `fake`, so no API key is needed.
+3. Wait for the first deploy, then open `https://skillforge-ai.onrender.com` (the pages) or `/docs` (the API).
 
-### render.yaml
+### What the Blueprint does, and why
 
-```yaml
-services:
-  - type: web
-    name: skillforge-ai-api
-    runtime: docker
-    dockerfilePath: ./docker/Dockerfile
-    dockerContext: .
-    healthCheckPath: /health
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: skillforge-ai-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: skillforge-ai-redis
-          type: keyvalue
-          property: connectionString
-      - key: JWT_SECRET_KEY
-        sync: false
-      - key: AI_PROVIDER
-        value: fake
-      - key: CORS_ORIGINS
-        value: '["https://skillforge-ai-api.onrender.com"]'
+- **Database URL.** Render hands out `postgresql://...`. The app needs the async driver, so `Settings` rewrites `postgres://` and `postgresql://` to `postgresql+asyncpg://` (`app/core/config.py`, tested in `tests/unit/test_config.py`).
+- **Migrations.** The free plan has no Shell and no pre-deploy command, so `dockerCommand` runs `alembic upgrade head` right before uvicorn. The free plan runs exactly one instance, so the race described in section 1 cannot happen here. On a paid plan with several instances, move it to `preDeployCommand`.
+- **Port.** Render sets `PORT`; the command binds to it and falls back to 8000.
+- **Client IPs behind the proxy.** The rate limiter keys on `request.client.host`. Behind Render's proxy that is the proxy's address, so every visitor would share one "5 logins per minute" bucket. `--proxy-headers --forwarded-allow-ips='*'` makes uvicorn take the address from `X-Forwarded-For`. The trade-off: a client can spoof that header to dodge the limit. Acceptable for a demo; a real deployment should trust only the proxy's address range.
+- **CORS.** The pages are served by the same app, so they are same-origin. `CORS_ORIGINS` lists the service URL only to keep the setting explicit.
 
-  - type: keyvalue
-    name: skillforge-ai-redis
-    plan: free
-    ipAllowList: []
+### Free-plan limits
 
-databases:
-  - name: skillforge-ai-db
-    databaseName: skillforge
-    user: skillforge
-    plan: free
-```
+- The web service sleeps after 15 minutes without traffic; the first request after that takes about a minute.
+- Free Postgres expires 30 days after creation, with 14 more days to upgrade before it is deleted.
+- Free Key Value does not persist data across restarts. Only caches (dashboard stats, AI responses) and rate-limit counters live there, so a restart loses nothing important.
 
-This file is written against Render's documented Blueprint spec but hasn't been deployed and verified end to end from this environment (no Render account available here) - double-check field names against [render.com/docs/blueprint-spec](https://render.com/docs/blueprint-spec) if something doesn't provision as expected, particularly the Redis service `type` (`keyvalue` is current; older guides use `redis`, which Render treats as a deprecated alias for the same thing).
+Check [render.com/pricing](https://render.com/pricing) for the current numbers; they change over time.
 
 Once it's live, update the README's `git clone <this-repo>` block with the real URL, and add `https://<service-name>.onrender.com/docs` as the linked demo.
 
