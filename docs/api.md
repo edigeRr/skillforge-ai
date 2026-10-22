@@ -37,7 +37,7 @@ Request:
 ```
 Response `201`:
 ```json
-{ "id": "uuid", "email": "user@example.com", "name": "Jane Doe", "created_at": "2026-01-01T00:00:00Z" }
+{ "id": "uuid", "email": "user@example.com", "name": "Jane Doe", "role": "user", "created_at": "2026-01-01T00:00:00Z" }
 ```
 Errors: `409 EMAIL_ALREADY_EXISTS`, `422` (validation).
 
@@ -59,7 +59,7 @@ Requires auth. Request: `{ "refresh_token": "..." }`. Revokes it server-side. Re
 ## 4. Profile
 
 ### GET /profile/me
-Response `200`: `{ "id": "uuid", "email": "user@example.com", "name": "Jane Doe", "created_at": "..." }`
+Response `200`: `{ "id": "uuid", "email": "user@example.com", "name": "Jane Doe", "role": "user", "created_at": "..." }`
 
 ### PUT /profile/me
 Request: `{ "name": "New Name" }`. Response `200`: updated profile object.
@@ -128,13 +128,34 @@ Response `200`:
 ```
 Topics need at least 2 scored data points to appear (see requirements.md, FR-5.1).
 
-## 8. Health
+## 8. Admin
+
+Every `/admin` endpoint requires an access token for an account whose `role` is `admin`: no token gives `401`, any other role gives `403 ADMIN_REQUIRED`. Roles are `user` (the default for every registered account) and `admin`; the column is a plain string, so more roles can be added without a migration.
+
+The API can't create the first admin, because nobody holds the role yet. Promote an existing account straight in the database: `python scripts/make_admin.py you@example.com` (uses `DATABASE_URL`).
+
+### GET /admin/users
+Paginated list of all accounts, newest first. Response `200`: the pagination envelope with profile objects (including `role`) as `items`.
+
+### POST /admin/users
+Request:
+```json
+{ "email": "new@example.com", "password": "Str0ngPass1", "name": "New User", "role": "user" }
+```
+`role` is optional (default `user`). Same password rules as registration. Response `201`: the new profile object.
+Errors: `409 EMAIL_ALREADY_EXISTS`, `422` (validation or unknown role), `429 TOO_MANY_ATTEMPTS`.
+
+### PATCH /admin/users/{id}/role
+Request: `{ "role": "admin" }`. Response `200`: the updated profile object.
+Errors: `404 USER_NOT_FOUND`, `409 CANNOT_CHANGE_OWN_ROLE` (an admin can't demote themselves, so the last admin can't lock everyone out), `422`, `429 TOO_MANY_ATTEMPTS`.
+
+## 9. Health
 
 ### GET /health
 No auth required. Checks DB and Redis connectivity.
 Response `200`: `{ "status": "ok", "db": "ok", "redis": "ok" }`. Returns `503` if any dependency check fails.
 
-## 9. Example OpenAPI Fragment
+## 10. Example OpenAPI Fragment
 
 The full spec is auto-generated, but here's the shape for one endpoint as a reference for how the Pydantic schemas should map to it:
 

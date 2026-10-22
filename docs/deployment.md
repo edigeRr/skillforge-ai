@@ -41,6 +41,16 @@ Render was picked here because it hosts a Docker web service, managed Postgres, 
 - **Client IPs behind the proxy.** The rate limiter keys on `request.client.host`. Behind Render's proxy that is the proxy's address, so every visitor would share one "5 logins per minute" bucket. `--proxy-headers --forwarded-allow-ips='*'` makes uvicorn take the address from `X-Forwarded-For`. The trade-off: a client can spoof that header to dodge the limit. Acceptable for a demo; a real deployment should trust only the proxy's address range.
 - **CORS.** The pages are served by the same app, so they are same-origin. `CORS_ORIGINS` lists the service URL only to keep the setting explicit.
 
+### Making the first admin
+
+The free plan has no Shell, so promote your account from your own machine. Register on the live site, copy the **External Database URL** from the Render dashboard (`skillforge-ai-db` > **Connect**), then run, in the repo's virtual environment:
+
+```bash
+DATABASE_URL="<external database URL>" python scripts/make_admin.py you@example.com
+```
+
+In PowerShell set it first with `$env:DATABASE_URL="<external database URL>"`. The script rewrites the `postgresql://` URL to the async driver like the app does.
+
 ### Free-plan limits
 
 - The web service sleeps after 15 minutes without traffic; the first request after that takes about a minute.
