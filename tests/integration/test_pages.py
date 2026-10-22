@@ -71,3 +71,24 @@ async def test_api_clients_and_static_files_keep_the_json_404(client, path, acce
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}
+
+
+@pytest.mark.parametrize("path", ["/admin", "/static/js/api.js", "/static/css/style.css"])
+async def test_pages_and_assets_must_be_revalidated(client, path):
+    response = await client.get(path)
+
+    assert response.headers["cache-control"] == "no-cache"
+
+
+async def test_the_404_page_must_be_revalidated(client):
+    response = await client.get("/no-such-page", headers={"accept": "text/html"})
+
+    assert response.headers["cache-control"] == "no-cache"
+
+
+async def test_an_unchanged_asset_is_answered_with_304(client):
+    first = await client.get("/static/js/api.js")
+
+    second = await client.get("/static/js/api.js", headers={"if-none-match": first.headers["etag"]})
+
+    assert second.status_code == 304
