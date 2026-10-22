@@ -5,6 +5,7 @@ endpoints.
 """
 
 from pathlib import Path
+from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
@@ -68,3 +69,8 @@ async def history_page() -> FileResponse:
 @router.get("/dashboard")
 async def dashboard_page() -> FileResponse:
     return _page("dashboard.html")
+
+
+@router.get("/interview/{interview_id}")
+async def interview_session_page(interview_id: UUID) -> FileResponse:
+    return _page("session.html")
