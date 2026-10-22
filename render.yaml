@@ -22,7 +22,7 @@ services:
       - key: AI_PROVIDER
         value: fake
       - key: CORS_ORIGINS
-        value: '["https://skillforge-ai.onrender.com"]'
+        value: '["https://skillforge-ai-t78b.onrender.com"]'
 
   - type: keyvalue
     name: skillforge-ai-redis

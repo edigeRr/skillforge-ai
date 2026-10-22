@@ -2,6 +2,8 @@
 
 AI-powered mock technical interview platform. Pick a language and a difficulty, get interviewed question by question, receive a scored evaluation and specific feedback on each answer, and track how you're trending over time.
 
+**Live demo:** https://skillforge-ai-t78b.onrender.com (free hosting: the first load after a quiet spell can take about a minute).
+
 It runs as one FastAPI app: a tested REST API (v1.0.0) and a browser UI on top of it — sign up, start an interview, answer questions one at a time, and see your scores, history and dashboard. Everything is also reachable straight through the interactive API docs at `/docs`.
 
 ## Quick look

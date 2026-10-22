@@ -31,7 +31,7 @@ Render was picked here because it hosts a Docker web service, managed Postgres, 
 
 1. In the Render dashboard: **New > Blueprint**, connect the GitHub repo, branch `main`. Render reads [`render.yaml`](../render.yaml) from the repo root and provisions the web service, Postgres, and Key Value together.
 2. Nothing has to be typed in: `JWT_SECRET_KEY` uses `generateValue: true`, so Render creates a random secret, and `AI_PROVIDER` is `fake`, so no API key is needed.
-3. Wait for the first deploy, then open `https://skillforge-ai.onrender.com` (the pages) or `/docs` (the API).
+3. Wait for the first deploy, then open the service URL Render shows (for this project: https://skillforge-ai-t78b.onrender.com), or `/docs` for the API. If the name `skillforge-ai` is taken Render appends random characters, so copy the real address and put it in `CORS_ORIGINS`.
 
 ### What the Blueprint does, and why
 
@@ -49,7 +49,7 @@ Render was picked here because it hosts a Docker web service, managed Postgres, 
 
 Check [render.com/pricing](https://render.com/pricing) for the current numbers; they change over time.
 
-Once it's live, update the README's `git clone <this-repo>` block with the real URL, and add `https://<service-name>.onrender.com/docs` as the linked demo.
+The live demo is at https://skillforge-ai-t78b.onrender.com (API docs at `/docs`). It runs on the free plan, so the first request after a quiet spell takes about a minute.
 
 ## 3. Deploying elsewhere
 
