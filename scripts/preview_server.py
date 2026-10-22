@@ -29,7 +29,6 @@ import uvicorn
 from fastapi import APIRouter, Depends, FastAPI, Query, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -63,7 +62,11 @@ from app.schemas.interview import (  # noqa: E402
     StartInterviewRequest,
 )
 from app.schemas.user import UpdateProfileRequest, UserResponse  # noqa: E402
-from app.web.routes import STATIC_DIR, not_found_handler  # noqa: E402
+from app.web.routes import (  # noqa: E402
+    STATIC_DIR,
+    RevalidatedStaticFiles,
+    not_found_handler,
+)
 from app.web.routes import router as pages_router  # noqa: E402
 
 DEFAULT_PORT = 8765
@@ -471,7 +474,7 @@ def create_app() -> FastAPI:
         api.include_router(router)
     app.include_router(api)
     app.include_router(pages_router)
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.mount("/static", RevalidatedStaticFiles(directory=STATIC_DIR), name="static")
     return app
 
 

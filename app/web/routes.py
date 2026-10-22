@@ -10,15 +10,28 @@ from uuid import UUID
 from fastapi import APIRouter, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 router = APIRouter(include_in_schema=False)
 
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
+REVALIDATE = {"Cache-Control": "no-cache"}
+
+
+class RevalidatedStaticFiles(StaticFiles):
+    """Browsers may keep a copy but must ask the server before reusing it (a
+    cheap 304 when nothing changed), so a deploy never leaves an old api.js
+    running next to a new page script."""
+
+    def file_response(self, *args, **kwargs) -> Response:
+        response = super().file_response(*args, **kwargs)
+        response.headers.update(REVALIDATE)
+        return response
 
 
 def _page(filename: str) -> FileResponse:
-    return FileResponse(STATIC_DIR / filename)
+    return FileResponse(STATIC_DIR / filename, headers=REVALIDATE)
 
 
 def _wants_a_page(request: Request) -> bool:
@@ -31,7 +44,7 @@ async def not_found_handler(request: Request, exc: StarletteHTTPException) -> Re
     """Browsers get the 404 page for unknown addresses; API clients and
     missing static files keep FastAPI's usual JSON 404."""
     if exc.status_code == 404 and _wants_a_page(request):
-        return FileResponse(STATIC_DIR / "404.html", status_code=404)
+        return FileResponse(STATIC_DIR / "404.html", status_code=404, headers=REVALIDATE)
     return await http_exception_handler(request, exc)
 
 
