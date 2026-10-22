@@ -17,6 +17,33 @@ def get_dashboard_service(
     return DashboardService(interviews, questions)
 
 
+# How to verify the dashboard
+# ===========================
+#
+# 1. In the browser (start the app as in the registration block in app/api/v1/auth.py)
+#    Log in as a new user and open /dashboard. Expected: "Welcome back, <name>.", then
+#    "Finish your first interview to see your stats here" and a "Start an interview" button.
+#    Finish a few interviews, answering at least two questions on the same topics, and open
+#    /dashboard again. Expected: the number of completed interviews, the average score on the
+#    heat scale, and "Strongest topics" / "Needs work" with each topic's average. A topic
+#    shows up only after two scored answers on it, and never in both lists at once.
+#
+# 2. Straight against the API (macOS, Linux, Git Bash)
+#      curl -H "Authorization: Bearer <access_token>" \
+#        http://localhost:8000/api/v1/dashboard/stats
+#    Expected: 200 with total_interviews, average_score, best_topics and weak_topics.
+#    Finish another interview and repeat it: the numbers change right away, because
+#    completing an interview clears the 5-minute cache.
+#
+#    Without Docker, scripts/preview_server.py runs the same page against an in-memory API
+#    (it has no cache).
+#
+# 3. Automated tests (same test database as in the registration block)
+#      pytest tests/integration/test_dashboard_flow.py tests/unit/test_dashboard_service.py -q
+#      cd tests-frontend
+#      npm test
+
+
 @router.get("/stats", response_model=DashboardStatsResponse, summary="View your stats")
 async def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
