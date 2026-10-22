@@ -11,6 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/forms.css" />
+  <link rel="stylesheet" href="/static/css/session.css" />
 </head>
 <body>
   <nav class="site-nav">
@@ -26,10 +28,67 @@
   </nav>
 
   <main>
-    <section class="page-section container">
-      <p class="eyebrow">Interview</p>
-      <h1>Your interview has started</h1>
-      <p class="text-muted">The question and answer screen arrives here in the next update.</p>
+    <section class="page-section container session">
+      <p class="eyebrow" id="session-meta">Interview</p>
+
+      <div id="form-error" class="banner banner-error" role="alert" hidden></div>
+
+      <div id="loading-view">
+        <p class="text-muted">Loading your interview...</p>
+      </div>
+
+      <div id="missing-view" hidden>
+        <h1 tabindex="-1" data-view-heading>Interview not found</h1>
+        <p class="text-muted">This interview doesn't exist, or it belongs to another account.</p>
+        <a class="btn btn-primary" href="/interview">Start a new interview</a>
+      </div>
+
+      <div id="question-view" hidden>
+        <p class="question-label"><span id="question-number">Question 1</span> · <span id="question-topic"></span></p>
+        <h1 id="question-text" class="question-text" tabindex="-1" data-view-heading></h1>
+
+        <form id="answer-form">
+          <div class="form-group">
+            <label class="form-label" for="answer">Your answer</label>
+            <textarea class="form-input answer-input" id="answer" name="answer" rows="9" required spellcheck="true"></textarea>
+          </div>
+          <div class="session-actions">
+            <button type="submit" class="btn btn-primary">Submit answer</button>
+            <button type="button" class="btn btn-ghost" id="finish-button">Finish early</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="result-view" hidden>
+        <h1 tabindex="-1" data-view-heading>Scored</h1>
+        <div class="score" id="result-score">
+          <p class="score-number"><span class="score-value">0.0</span><span class="score-max"> / 10</span></p>
+          <div class="score-meter" role="meter" aria-label="Score" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="score-fill"></div></div>
+        </div>
+        <p class="feedback" id="result-feedback"></p>
+        <button type="button" class="btn btn-primary" id="next-button">Next question</button>
+      </div>
+
+      <div id="summary-view" hidden>
+        <h1 tabindex="-1" data-view-heading>Interview complete</h1>
+        <div class="score" id="summary-score">
+          <p class="score-number"><span class="score-value">0.0</span><span class="score-max"> / 10</span></p>
+          <div class="score-meter" role="meter" aria-label="Overall score" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="score-fill"></div></div>
+        </div>
+        <p class="text-muted" id="summary-no-score" hidden>No answers were scored, so there's no overall score.</p>
+        <ol class="summary-list" id="summary-list"></ol>
+        <div class="session-actions">
+          <a class="btn btn-primary" href="/interview">Start another interview</a>
+          <a class="btn btn-secondary" href="/history">See all interviews</a>
+        </div>
+      </div>
+
+      <template id="score-template">
+        <div class="score score-compact">
+          <p class="score-number"><span class="score-value">0.0</span><span class="score-max"> / 10</span></p>
+          <div class="score-meter" role="meter" aria-label="Score" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="score-fill"></div></div>
+        </div>
+      </template>
     </section>
   </main>
 
@@ -41,5 +100,7 @@
   </footer>
 
   <script src="/static/js/nav.js"></script>
+  <script src="/static/js/heat.js"></script>
+  <script src="/static/js/session.js"></script>
 </body>
 </html>
