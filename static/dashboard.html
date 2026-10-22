@@ -11,6 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/score.css" />
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
 </head>
 <body>
   <nav class="site-nav">
@@ -26,10 +28,61 @@
   </nav>
 
   <main>
-    <section class="page-section container">
+    <section class="page-section container dashboard">
       <p class="eyebrow">Dashboard</p>
       <h1>Your progress</h1>
-      <p class="text-muted">Scores by language and your strongest and weakest topics arrive here soon.</p>
+      <p class="text-muted" id="greeting" hidden></p>
+
+      <div id="form-error" class="banner banner-error" role="alert" hidden></div>
+
+      <p class="text-muted" id="dashboard-loading">Loading your stats...</p>
+
+      <div id="dashboard-empty" class="dashboard-empty" hidden>
+        <p>Finish your first interview to see your stats here.</p>
+        <a class="btn btn-primary" href="/interview">Start an interview</a>
+      </div>
+
+      <div id="dashboard-stats" hidden>
+        <div class="stat-grid">
+          <div class="card stat-card">
+            <p class="stat-label">Completed interviews</p>
+            <p class="stat-value" id="total-interviews">0</p>
+          </div>
+          <div class="card stat-card">
+            <p class="stat-label">Average score</p>
+            <div class="score" id="average-score">
+              <p class="score-number"><span class="score-value">0.0</span><span class="score-max"> / 10</span></p>
+              <div class="score-meter" role="meter" aria-label="Average score" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="score-fill"></div></div>
+            </div>
+            <p class="text-muted" id="average-none" hidden>No scored answers yet.</p>
+          </div>
+        </div>
+
+        <div class="topic-grid">
+          <section class="card topic-card" aria-labelledby="best-heading">
+            <h2 id="best-heading">Strongest topics</h2>
+            <ol class="topic-list" id="best-topics"></ol>
+            <p class="text-muted topic-note" id="best-none" hidden>Answer at least two questions on a topic to see it here.</p>
+          </section>
+          <section class="card topic-card" aria-labelledby="weak-heading">
+            <h2 id="weak-heading">Needs work</h2>
+            <ol class="topic-list" id="weak-topics"></ol>
+            <p class="text-muted topic-note" id="weak-none" hidden>Nothing stands out yet. Keep practicing different topics.</p>
+          </section>
+        </div>
+
+        <div class="dashboard-actions">
+          <a class="btn btn-primary" href="/interview">Start an interview</a>
+          <a class="btn btn-secondary" href="/history">See all interviews</a>
+        </div>
+      </div>
+
+      <template id="score-template">
+        <div class="score score-compact">
+          <p class="score-number"><span class="score-value">0.0</span><span class="score-max"> / 10</span></p>
+          <div class="score-meter" role="meter" aria-label="Score" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="score-fill"></div></div>
+        </div>
+      </template>
     </section>
   </main>
 
@@ -41,5 +94,7 @@
   </footer>
 
   <script src="/static/js/nav.js"></script>
+  <script src="/static/js/heat.js"></script>
+  <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
