@@ -34,4 +34,5 @@ databases:
     databaseName: skillforge
     user: skillforge
     plan: free
+    ipAllowList: []
     postgresMajorVersion: "16"

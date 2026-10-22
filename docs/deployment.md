@@ -43,13 +43,19 @@ Render was picked here because it hosts a Docker web service, managed Postgres, 
 
 ### Making the first admin
 
-The free plan has no Shell, so promote your account from your own machine. Register on the live site, copy the **External Database URL** from the Render dashboard (`skillforge-ai-db` > **Connect**), then run, in the repo's virtual environment:
+The free plan has no Shell, so promote your account from your own machine. The Blueprint sets `ipAllowList: []` on the database, so by default nothing outside Render can connect. To run the script:
+
+1. Register on the live site.
+2. In the Render dashboard open `skillforge-ai-db` > **Info** > **Access Control** and add your current IP address (for example from https://ifconfig.me) with a description such as "me, make_admin". Render re-applies the Blueprint on every push to `main` and may drop the entry again, so do the next steps right away.
+3. Copy the **External Database URL** from `skillforge-ai-db` > **Connect** and run the script, in the repo's virtual environment:
 
 ```bash
 DATABASE_URL="<external database URL>" python scripts/make_admin.py you@example.com
 ```
 
-In PowerShell set it first with `$env:DATABASE_URL="<external database URL>"`. The script rewrites the `postgresql://` URL to the async driver like the app does.
+In PowerShell set the variable first with `$env:DATABASE_URL="<external database URL>"` (keep the quotes) and clear it afterwards with `Remove-Item Env:DATABASE_URL`. The script rewrites the `postgresql://` URL to the async driver like the app does.
+
+4. Remove your IP from the allow list again. Never paste the URL into chats or commits: it contains the database password.
 
 ### Free-plan limits
 
