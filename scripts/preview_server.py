@@ -13,6 +13,8 @@ Usage:
     python scripts/preview_server.py --port 9000
 
 POST /api/v1/dev/reset wipes all accounts and interviews.
+POST /api/v1/dev/make-admin {"email": "..."} gives an account the admin role
+(the stand-in for scripts/make_admin.py).
 """
 
 import argparse
@@ -34,6 +36,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.ai.fake_provider import FakeAIProvider  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
+from app.schemas.admin import (  # noqa: E402
+    CreateUserRequest,
+    PaginatedUsers,
+    UpdateRoleRequest,
+)
 from app.schemas.auth import (  # noqa: E402
     LoginRequest,
     RefreshRequest,
@@ -374,6 +381,60 @@ async def dashboard_stats(user: User = Depends(current_user)) -> DashboardStatsR
     )
 
 
+def current_admin(user: User = Depends(current_user)) -> User:
+    if user.role != "admin":
+        raise ApiError(403, "ADMIN_REQUIRED", "Administrator access required.")
+    return user
+
+
+admin = APIRouter(prefix="/admin")
+
+
+@admin.get("/users", response_model=PaginatedUsers)
+async def list_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    _: User = Depends(current_admin),
+) -> PaginatedUsers:
+    users = sorted(store.users.values(), key=lambda u: u.created_at, reverse=True)
+    start = (page - 1) * page_size
+    return PaginatedUsers(
+        items=[
+            UserResponse.model_validate(u, from_attributes=True)
+            for u in users[start : start + page_size]
+        ],
+        page=page,
+        page_size=page_size,
+        total=len(users),
+    )
+
+
+@admin.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(payload: CreateUserRequest, _: User = Depends(current_admin)) -> User:
+    if payload.email in store.users:
+        raise ApiError(409, "EMAIL_ALREADY_EXISTS", "A user with this email already exists.")
+    user = User(
+        email=payload.email, password=payload.password, name=payload.name, role=payload.role
+    )
+    store.users[user.email] = user
+    return user
+
+
+@admin.patch("/users/{user_id}/role", response_model=UserResponse)
+async def change_role(
+    user_id: UUID, payload: UpdateRoleRequest, me: User = Depends(current_admin)
+) -> User:
+    if user_id == me.id:
+        raise ApiError(
+            409, "CANNOT_CHANGE_OWN_ROLE", "Administrators cannot change their own role."
+        )
+    user = next((u for u in store.users.values() if u.id == user_id), None)
+    if user is None:
+        raise ApiError(404, "USER_NOT_FOUND", "User not found.")
+    user.role = payload.role
+    return user
+
+
 dev = APIRouter(prefix="/dev")
 
 
@@ -381,6 +442,15 @@ dev = APIRouter(prefix="/dev")
 async def reset() -> dict[str, bool]:
     global store
     store = Store()
+    return {"ok": True}
+
+
+@dev.post("/make-admin")
+async def make_admin(payload: dict[str, str]) -> dict[str, bool]:
+    user = store.users.get(payload.get("email", ""))
+    if user is None:
+        raise ApiError(404, "USER_NOT_FOUND", "User not found.")
+    user.role = "admin"
     return {"ok": True}
 
 
@@ -397,7 +467,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(StarletteHTTPException, not_found_handler)
 
     api = APIRouter(prefix="/api/v1")
-    for router in (auth, profile, interviews, dashboard, dev):
+    for router in (auth, profile, interviews, dashboard, admin, dev):
         api.include_router(router)
     app.include_router(api)
     app.include_router(pages_router)
