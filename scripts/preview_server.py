@@ -28,6 +28,7 @@ from fastapi import APIRouter, Depends, FastAPI, Query, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -55,7 +56,7 @@ from app.schemas.interview import (  # noqa: E402
     StartInterviewRequest,
 )
 from app.schemas.user import UpdateProfileRequest, UserResponse  # noqa: E402
-from app.web.routes import STATIC_DIR  # noqa: E402
+from app.web.routes import STATIC_DIR, not_found_handler  # noqa: E402
 from app.web.routes import router as pages_router  # noqa: E402
 
 DEFAULT_PORT = 8765
@@ -391,6 +392,8 @@ def create_app() -> FastAPI:
             status_code=exc.status_code,
             content={"detail": exc.detail, "error_code": exc.error_code},
         )
+
+    app.add_exception_handler(StarletteHTTPException, not_found_handler)
 
     api = APIRouter(prefix="/api/v1")
     for router in (auth, profile, interviews, dashboard, dev):
