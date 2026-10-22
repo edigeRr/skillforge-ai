@@ -66,7 +66,8 @@ tests-frontend/
 ├── history.test.mjs     history page tests
 ├── dashboard.test.mjs   dashboard tests
 ├── admin.test.mjs       admin page tests
-└── guard.test.mjs       members-only page guard tests
+├── guard.test.mjs       members-only page guard tests
+└── nav.test.mjs         when the nav shows the Admin link
 ```
 
 Each page is a self-contained `.html` file with its own `<script>` tags — no templating layer, so nav/footer markup is duplicated per page rather than shared through includes. That's a deliberate trade for "no build step, every file readable on its own."
@@ -198,7 +199,7 @@ The API caches these stats for five minutes per user, but finishing an interview
 
 ## Admin (`/admin`)
 
-For accounts with the `admin` role. The page loads `GET /profile/me` and the first page of `GET /admin/users` together. Any other logged-in account gets `403` from the API, and the page shows "This page is for administrators" with a link back to the dashboard. `guard.js` still sends logged-out visitors to `/login`, as on every members-only page. The page isn't linked from the nav yet; admins open `/admin` directly.
+For accounts with the `admin` role. The page loads `GET /profile/me` and the first page of `GET /admin/users` together. Any other logged-in account gets `403` from the API, and the page shows "This page is for administrators" with a link back to the dashboard. `guard.js` still sends logged-out visitors to `/login`, as on every members-only page. Admins reach it from the **Admin** link in the nav (see Polish).
 
 - **Create an account.** Name, email, password and role, with the same limits as the sign-up form. On success the form clears, "Created nia@example.com as Admin." appears, and the list reloads from page 1 so the new account is on top. A taken email marks the email field; `422`, `429` and an unreachable server get the usual messages.
 - **Accounts.** Newest first, 20 per page, with Previous / Next when there is more than one page. Each card shows the name, email and join date, plus a role picker and **Save**. Save stays disabled until the picked role differs from the saved one. On success the status line says "pat@example.com is now Admin."; on failure the picker goes back to the saved role and the error appears above the list. If the account was deleted in the meantime (`404`), the list reloads.
@@ -234,6 +235,10 @@ The history tests cover the first load and the row links, score versus status on
 
 The dashboard tests cover the totals, the average on the heat scale and both topic lists, the greeting and what happens when the profile fails, keeping a topic out of both lists, the explanations for empty topic lists and a missing average, the first-interview state, topic names rendered as text, and every error message.
 
+The nav tests check that every page with a nav has an Admin link that starts hidden, and that `nav.js` shows it only for a readable token whose role is `admin`: not for other roles, an unreadable token, or a logged-out visitor.
+
+**Cache headers (backend).** `test_pages.py` also checks that pages, assets and the 404 page are sent with `Cache-Control: no-cache`, and that a repeat request with the ETag gets a `304`.
+
 The admin tests cover the list with a picker on every card but your own, the not-for-administrators view on `403`, saving a changed role (the PATCH body, the confirmation, Save disabled again), putting the old role back when saving fails, reloading when the account is gone, creating an account (the trimmed payload, the cleared form, the reload from page 1), the taken-email error, and paging.
 
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
@@ -242,6 +247,9 @@ jsdom does no layout and can't follow a real navigation, so these tests say noth
 
 - **Favicon.** `favicon.svg` is the glowing ember dot from the logo on the dark background. One SVG covers every size, so there are no PNG variants to keep in sync.
 - **404 page.** FastAPI answers an unknown address with `{"detail": "Not Found"}` — fine for an API client, a dead end in a browser. `not_found_handler` in `app/web/routes.py` serves `404.html` (still with status 404) when the request asks for HTML and the path isn't under `/api/` or `/static/`. Everything else, and every status other than 404, goes to FastAPI's normal handler, so API clients see no change.
+- **`hidden` always wins.** `style.css` has `[hidden] { display: none !important; }`. Without it a class rule such as `.pagination { display: flex }` beats the browser's own `[hidden]` rule, which is how the history page showed "Page 1 of 1" under an empty list.
+- **No stale scripts after a deploy.** Pages and everything under `/static` are sent with `Cache-Control: no-cache` (`RevalidatedStaticFiles` and `_page` in `app/web/routes.py`). Browsers keep their copy but ask the server first, which answers `304` when nothing changed. Before this, a browser kept running a cached `api.js` without `patch` next to the new admin page.
+- **Admin link.** Every nav has `<a href="/admin" data-auth="admin" hidden>`. `nav.js` un-hides it when `getRole()` in `api.js` reads `role: "admin"` from the access token, so no page makes an extra request for it. The claim is only a hint: `/admin` and its API check the role on the server. Under 420px an admin's four links don't fit next to the full brand, so the brand shrinks to its ember dot there (the text stays for screen readers); other accounts keep the full brand.
 - **Narrow screens.** Below 640px the brand and nav links shrink and never wrap, the nav button gets smaller padding, and the home page's "How it works" link — an anchor to a section a scroll away — is hidden. Below 360px the gaps tighten once more. Measured on every page, logged in and out: the nav stays on one line with no horizontal scroll at 375px and at 320px.
 
 ## Previewing without Docker
@@ -280,10 +288,10 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.9** — history: `history.html`, `history.css`, `history.js`, jsdom tests; the score meter moved to `score.css` and `paintScore` to `heat.js`.
 - **v1.10** — dashboard: `dashboard.html`, `dashboard.css`, `dashboard.js`, jsdom tests.
 - **v1.11** — polish and CI: favicon, 404 page, a nav that fits phone screens, `frontend` and `docker` CI jobs, README brought up to date.
+- **v1.13** — the Admin nav link (role claim in the access token, `getRole()`), `[hidden]` that always wins (fixes the history pager), `Cache-Control: no-cache` on pages and static files, static files mounted from an absolute path, nav and cache-header tests.
 - **v1.12** — admin: the `/admin` page (`admin.html`, `admin.css`, `admin.js`), `api.patch`, the admin endpoints in the preview server, page and jsdom tests. Built on the backend's `role` column and `/admin` endpoints.
 
 ## What's next
 
-- An "Admin" nav link that shows only for admins. Every page would need the role, so it means one more `GET /profile/me` per page or putting the role in the token.
-- Static files have no cache-busting. After a deploy, a browser can keep running an old `api.js` next to a new page script (seen while building the admin page: the cached `api.js` had no `patch`). Versioned file names or `Cache-Control: no-cache` would fix it.
-- `.pagination { display: flex }` in `history.css` overrides the `hidden` attribute, so the history page shows "Page 1 of 1" with disabled buttons when everything fits on one page. `admin.css` has a `[hidden]` rule for this; history needs the same.
+- `ApiError` in `api.js` keeps only `detail`, so for a `422` the forms can show a general message but not which field the API rejected.
+- `/interview/<not-a-uuid>` answers a browser with the JSON `422` instead of the 404 page.

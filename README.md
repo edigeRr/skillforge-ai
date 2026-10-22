@@ -84,9 +84,9 @@ docker compose up -d db redis
 pytest --cov=app --cov-report=term-missing
 ```
 
-94 backend tests (unit + integration, against a real Postgres/Redis, not mocks-all-the-way-down), with coverage of `app/services` and `app/api` enforced at 80%+ as a CI gate. One of them is a live-provider test, skipped unless `RUN_LIVE_AI_TESTS=1` and a real API key are set, so CI never needs credentials.
+102 backend tests (unit + integration, against a real Postgres/Redis, not mocks-all-the-way-down), with coverage of `app/services` and `app/api` enforced at 80%+ as a CI gate. One of them is a live-provider test, skipped unless `RUN_LIVE_AI_TESTS=1` and a real API key are set, so CI never needs credentials.
 
-The frontend has 97 tests that run the real `static/js` files against the real pages in jsdom, with the API replaced by a scripted fake (Node.js 20+):
+The frontend has 102 tests that run the real `static/js` files against the real pages in jsdom, with the API replaced by a scripted fake (Node.js 20+):
 
 ```bash
 cd tests-frontend
