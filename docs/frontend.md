@@ -22,6 +22,9 @@ static/
 ├── index.html           landing page
 ├── register.html        sign-up page
 ├── login.html           log-in page
+├── interview.html       interview (members only, placeholder for now)
+├── history.html         past interviews (members only, placeholder for now)
+├── dashboard.html       progress overview (members only, placeholder for now)
 ├── css/
 │   ├── style.css         shared design tokens, typography, base components (buttons, cards, chips, nav)
 │   ├── forms.css          form fields, labels, hints and the invalid state
@@ -30,6 +33,7 @@ static/
 └── js/
     ├── api.js             fetch wrapper: token storage, auto-refresh on 401, unified error handling
     ├── nav.js              shared nav auth-state toggle + logout, included on every page
+    ├── guard.js            sends logged-out visitors from members-only pages to /login
     ├── hero.js             landing page typewriter effect
     ├── register.js         sign-up form: register, log in, error messages
     └── login.js            log-in form: log in, store tokens, error messages
@@ -40,7 +44,8 @@ app/web/
 tests-frontend/
 ├── package.json         jsdom is the only dependency; `npm test` runs Node's built-in test runner
 ├── register.test.mjs    sign-up form tests
-└── login.test.mjs       log-in form tests
+├── login.test.mjs       log-in form tests
+└── guard.test.mjs       members-only page guard tests
 ```
 
 Each page is a self-contained `.html` file with its own `<script>` tags — no templating layer, so nav/footer markup is duplicated per page rather than shared through includes. That's a deliberate trade for "no build step, every file readable on its own."
@@ -88,6 +93,14 @@ On submit, `login.js` locks the button, calls `POST /auth/login`, stores the ret
 | Server unreachable | "Can't reach the server. Check your connection and try again." |
 | Anything else | "Something went wrong. Please try again." |
 
+## Members-only pages (`/interview`, `/history`, `/dashboard`)
+
+These pages load `api.js` and `guard.js` in `<head>`, before the page body. If there is no access token in `localStorage`, `guard.js` calls `location.replace("/login")`. Because the page is *replaced* rather than navigated away from, the Back button on the log-in page doesn't bounce the visitor back into the guard.
+
+The guard only checks that a token is stored, not that it is still valid. That is enough: an expired token is refreshed by `api.js` on the first `401`, and if the refresh fails too, `api.js` clears the tokens and sends the user to `/login` itself. The guard is a convenience, not a security boundary — every piece of data on these pages comes from API endpoints that check the token on the server.
+
+For now the three pages are placeholders with a heading and one line of text; each gets its real content in its own stage.
+
 ## Tests
 
 **Pages (backend).** `tests/integration/test_pages.py` checks that every page route returns HTML, that every `/static/...` file a page references is actually served, and that the page routes stay out of the OpenAPI schema. It runs with the rest of the backend suite.
@@ -104,6 +117,8 @@ This needs Node.js 20 or newer. The sign-up tests cover the happy path (register
 
 The log-in tests cover the happy path (tokens stored, redirect), every message in the log-in table, that a wrong password does not start a token refresh, that an old error disappears on the next try, the double-submit guard, native validation, and the `autocomplete` values password managers rely on.
 
+The guard tests open each members-only page with and without stored tokens and check that only the logged-out visit leaves the page, that `guard.js` runs in `<head>` right after `api.js`, and that public pages don't include it. jsdom can't report where a navigation was headed, so the `/login` target is checked in the guard's source and by hand in the browser.
+
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
 ## Progress
@@ -113,10 +128,10 @@ jsdom does no layout and can't follow a real navigation, so these tests say noth
 - **v1.3** — the real landing page (`home.css`, `nav.js`, `hero.js`, full `index.html`).
 - **v1.4** — sign-up: `register.html`, `forms.css`, `auth.css`, `register.js`, the `/register` route, backend page tests and the first frontend tests.
 - **v1.5** — log-in: `login.html`, `login.js`, the `/login` route, page and jsdom tests.
+- **v1.6** — members-only pages: `guard.js`, placeholder `interview.html`, `history.html`, `dashboard.html`, their routes, page and jsdom tests.
 
 ## What's next
 
-- Guards that send logged-out visitors from `/interview`, `/dashboard` and `/history` to `/login`.
 - The interview start page and the interview session: question, answer box, score shown on the heat scale.
 - History and dashboard pages.
 - An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
