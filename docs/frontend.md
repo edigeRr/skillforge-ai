@@ -26,6 +26,7 @@ static/
 ├── session.html         one interview session at /interview/{id}: question, answer, score, summary (members only)
 ├── history.html         past interviews with filters and pages (members only)
 ├── dashboard.html       progress overview: totals, average, strongest and weakest topics (members only)
+├── admin.html           accounts: create one, change roles (admin role only)
 ├── 404.html             page-not-found page for unknown addresses
 ├── favicon.svg          the ember dot from the logo, on every page
 ├── css/
@@ -37,6 +38,7 @@ static/
 │   ├── session.css        question, answer box, summary
 │   ├── history.css        history list, filters, pagination
 │   ├── dashboard.css      dashboard tiles and topic lists
+│   ├── admin.css          create-account form, account cards, pagination
 │   └── home.css           landing-page-specific layout
 └── js/
     ├── api.js             fetch wrapper: token storage, auto-refresh on 401, unified error handling
@@ -49,6 +51,7 @@ static/
     ├── session.js          interview session: answer, score, next question, finish, summary
     ├── history.js          history: list, filters, pages, state kept in the address bar
     ├── dashboard.js        dashboard: stats, topics, greeting
+    ├── admin.js            admin: list accounts, create one, change roles
     └── login.js            log-in form: log in, store tokens, error messages
 
 app/web/
@@ -62,6 +65,7 @@ tests-frontend/
 ├── session.test.mjs     interview session tests
 ├── history.test.mjs     history page tests
 ├── dashboard.test.mjs   dashboard tests
+├── admin.test.mjs       admin page tests
 └── guard.test.mjs       members-only page guard tests
 ```
 
@@ -110,7 +114,7 @@ On submit, `login.js` locks the button, calls `POST /auth/login`, stores the ret
 | Server unreachable | "Can't reach the server. Check your connection and try again." |
 | Anything else | "Something went wrong. Please try again." |
 
-## Members-only pages (`/interview`, `/history`, `/dashboard`)
+## Members-only pages (`/interview`, `/history`, `/dashboard`, `/admin`)
 
 These pages load `api.js` and `guard.js` in `<head>`, before the page body. If there is no access token in `localStorage`, `guard.js` calls `location.replace("/login")`. Because the page is *replaced* rather than navigated away from, the Back button on the log-in page doesn't bounce the visitor back into the guard.
 
@@ -192,6 +196,18 @@ A greeting, "Welcome back, Ada.", comes from `GET /profile/me`. It is loaded sep
 
 The API caches these stats for five minutes per user, but finishing an interview clears that cache, so the dashboard is current right after the summary screen.
 
+## Admin (`/admin`)
+
+For accounts with the `admin` role. The page loads `GET /profile/me` and the first page of `GET /admin/users` together. Any other logged-in account gets `403` from the API, and the page shows "This page is for administrators" with a link back to the dashboard. `guard.js` still sends logged-out visitors to `/login`, as on every members-only page. The page isn't linked from the nav yet; admins open `/admin` directly.
+
+- **Create an account.** Name, email, password and role, with the same limits as the sign-up form. On success the form clears, "Created nia@example.com as Admin." appears, and the list reloads from page 1 so the new account is on top. A taken email marks the email field; `422`, `429` and an unreachable server get the usual messages.
+- **Accounts.** Newest first, 20 per page, with Previous / Next when there is more than one page. Each card shows the name, email and join date, plus a role picker and **Save**. Save stays disabled until the picked role differs from the saved one. On success the status line says "pat@example.com is now Admin."; on failure the picker goes back to the saved role and the error appears above the list. If the account was deleted in the meantime (`404`), the list reloads.
+- **Your own card** shows "Admin · you" as text instead of a picker. The API refuses to let an admin change their own role (`409 CANNOT_CHANGE_OWN_ROLE`), so the last admin can't lock everyone out, and the page doesn't offer the control.
+
+Cards instead of a table keep the page readable at 320px with no horizontal scroll: below 640px the role picker moves under the name.
+
+The first admin can't be made through this page or the API. Use `scripts/make_admin.py` (see [docs/api.md](api.md#8-admin)). In the preview server, `POST /api/v1/dev/make-admin` with `{"email": "..."}` does the same.
+
 ## Tests
 
 **Pages (backend).** `tests/integration/test_pages.py` checks that every page route returns HTML, that every `/static/...` file a page references is actually served, and that the page routes stay out of the OpenAPI schema. It runs with the rest of the backend suite.
@@ -218,6 +234,8 @@ The history tests cover the first load and the row links, score versus status on
 
 The dashboard tests cover the totals, the average on the heat scale and both topic lists, the greeting and what happens when the profile fails, keeping a topic out of both lists, the explanations for empty topic lists and a missing average, the first-interview state, topic names rendered as text, and every error message.
 
+The admin tests cover the list with a picker on every card but your own, the not-for-administrators view on `403`, saving a changed role (the PATCH body, the confirmation, Save disabled again), putting the old role back when saving fails, reloading when the account is gone, creating an account (the trimmed payload, the cleared form, the reload from page 1), the taken-email error, and paging.
+
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
 ## Polish
@@ -228,7 +246,7 @@ jsdom does no layout and can't follow a real navigation, so these tests say noth
 
 ## Previewing without Docker
 
-`scripts/preview_server.py` serves the real pages and static files and answers `/api/v1` from memory, so the frontend can be clicked through on a machine without Postgres or Redis. Requests are validated by the real schemas in `app/schemas`, responses are built from them too, and questions and scores come from the real `FakeAIProvider` — so status codes, `error_code` values and JSON shapes match the real API. It skips rate limits and the dashboard cache, and forgets everything on restart. `POST /api/v1/dev/reset` wipes it without a restart.
+`scripts/preview_server.py` serves the real pages and static files and answers `/api/v1` from memory, so the frontend can be clicked through on a machine without Postgres or Redis. Requests are validated by the real schemas in `app/schemas`, responses are built from them too, and questions and scores come from the real `FakeAIProvider` — so status codes, `error_code` values and JSON shapes match the real API. It skips rate limits and the dashboard cache, and forgets everything on restart. `POST /api/v1/dev/reset` wipes it without a restart, and `POST /api/v1/dev/make-admin` with `{"email": "..."}` gives an account the admin role.
 
 ```bash
 python -m venv .venv
@@ -262,7 +280,10 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.9** — history: `history.html`, `history.css`, `history.js`, jsdom tests; the score meter moved to `score.css` and `paintScore` to `heat.js`.
 - **v1.10** — dashboard: `dashboard.html`, `dashboard.css`, `dashboard.js`, jsdom tests.
 - **v1.11** — polish and CI: favicon, 404 page, a nav that fits phone screens, `frontend` and `docker` CI jobs, README brought up to date.
+- **v1.12** — admin: the `/admin` page (`admin.html`, `admin.css`, `admin.js`), `api.patch`, the admin endpoints in the preview server, page and jsdom tests. Built on the backend's `role` column and `/admin` endpoints.
 
 ## What's next
 
-- An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
+- An "Admin" nav link that shows only for admins. Every page would need the role, so it means one more `GET /profile/me` per page or putting the role in the token.
+- Static files have no cache-busting. After a deploy, a browser can keep running an old `api.js` next to a new page script (seen while building the admin page: the cached `api.js` had no `patch`). Versioned file names or `Cache-Control: no-cache` would fix it.
+- `.pagination { display: flex }` in `history.css` overrides the `hidden` attribute, so the history page shows "Page 1 of 1" with disabled buttons when everything fits on one page. `admin.css` has a `[hidden]` rule for this; history needs the same.
