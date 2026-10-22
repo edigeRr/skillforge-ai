@@ -442,3 +442,9 @@ main {
     font-size: 0.8rem;
   }
 }
+
+@media (max-width: 420px) {
+  .site-nav .container:has([data-auth="admin"]:not([hidden])) .brand {
+    font-size: 0;
+  }
+}
