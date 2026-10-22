@@ -158,7 +158,7 @@ async def ask_next_question(interview: Interview) -> Question:
     asked = [q.topic for q in interview.questions]
     generated = await ai.generate_question(interview.language, interview.difficulty, asked)
     question = Question(
-        order_index=len(interview.questions), topic=generated.topic, question=generated.question
+        order_index=len(interview.questions) + 1, topic=generated.topic, question=generated.question
     )
     interview.questions.append(question)
     return question
