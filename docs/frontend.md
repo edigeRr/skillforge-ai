@@ -143,6 +143,18 @@ The interview start tests cover starting with the chosen language and level (wit
 
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
+## Previewing without Docker
+
+`scripts/preview_server.py` serves the real pages and static files and answers `/api/v1` from memory, so the frontend can be clicked through on a machine without Postgres or Redis. Requests are validated by the real schemas in `app/schemas`, responses are built from them too, and questions and scores come from the real `FakeAIProvider` — so status codes, `error_code` values and JSON shapes match the real API. It skips rate limits and the dashboard cache, and forgets everything on restart. `POST /api/v1/dev/reset` wipes it without a restart.
+
+```bash
+python -m venv .venv
+.venv\Scripts\pip install -r requirements-dev.txt
+.venv\Scripts\python scripts/preview_server.py
+```
+
+Then open http://127.0.0.1:8765. Anything that depends on the database or Redis — migrations, rate limiting, the backend test suite — still needs `docker compose up`.
+
 ## Progress
 
 - **v1.1** — static file serving + page routing wired into the FastAPI app (`app/web/routes.py`, `StaticFiles` mount in `main.py`, `Dockerfile`/`docker-compose.yml` updated to ship `static/`). Placeholder page only.
