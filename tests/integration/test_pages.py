@@ -2,7 +2,15 @@ import re
 
 import pytest
 
-PAGES = ["/", "/register", "/login", "/interview", "/history", "/dashboard"]
+PAGES = [
+    "/",
+    "/register",
+    "/login",
+    "/interview",
+    "/interview/3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b",
+    "/history",
+    "/dashboard",
+]
 ASSET_REFERENCE = re.compile(r'(?:href|src)="(/static/[^"]+)"')
 
 
@@ -31,3 +39,9 @@ async def test_pages_are_not_part_of_the_openapi_schema(client):
 
     for path in PAGES:
         assert path not in schema["paths"]
+
+
+async def test_session_page_needs_an_interview_id_shaped_like_a_uuid(client):
+    response = await client.get("/interview/not-an-id")
+
+    assert response.status_code == 422
