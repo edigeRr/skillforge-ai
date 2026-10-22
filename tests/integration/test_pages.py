@@ -10,6 +10,7 @@ PAGES = [
     "/interview/3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b",
     "/history",
     "/dashboard",
+    "/admin",
 ]
 ASSET_REFERENCE = re.compile(r'(?:href|src)="(/static/[^"]+)"')
 

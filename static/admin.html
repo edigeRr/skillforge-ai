@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — SkillForge AI</title>
+  <meta name="description" content="Manage SkillForge AI accounts and roles." />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/forms.css" />
+  <link rel="stylesheet" href="/static/css/admin.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span>SkillForge AI</a>
+      <div class="nav-links">
+        <a href="/login" data-auth="logged-out">Log in</a>
+        <a href="/dashboard" data-auth="logged-in">Dashboard</a>
+        <a href="/interview" data-auth="logged-in">Interview</a>
+        <a href="#" data-auth="logged-in" data-action="logout">Log out</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="page-section container admin">
+      <p class="eyebrow">Admin</p>
+      <h1>Accounts</h1>
+
+      <div id="form-error" class="banner banner-error" role="alert" hidden></div>
+
+      <p class="text-muted" id="admin-loading">Loading accounts...</p>
+
+      <div id="admin-denied" class="admin-state" hidden>
+        <p>This page is for administrators. Your account doesn't have the admin role.</p>
+        <a class="btn btn-secondary" href="/dashboard">Back to your dashboard</a>
+      </div>
+
+      <div id="admin-content" hidden>
+        <form id="create-form" class="card admin-create" aria-labelledby="create-heading">
+          <h2 id="create-heading">Create an account</h2>
+          <div id="create-error" class="banner banner-error" role="alert" hidden></div>
+          <div class="admin-create-fields">
+            <div class="form-group">
+              <label class="form-label" for="new-name">Name</label>
+              <input class="form-input" id="new-name" name="name" type="text" required maxlength="100" pattern=".*\S.*" title="Enter a name" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-email">Email</label>
+              <input class="form-input" id="new-email" name="email" type="email" required autocomplete="off" autocapitalize="none" spellcheck="false" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-password">Password</label>
+              <input class="form-input" id="new-password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="new-password-hint" />
+              <p class="form-hint" id="new-password-hint">8-72 characters, at least one letter and one digit.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-role">Role</label>
+              <select class="form-input" id="new-role" name="role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Create account</button>
+        </form>
+
+        <p class="admin-status" id="admin-status" role="status" aria-live="polite"></p>
+
+        <ul class="admin-users" id="admin-users" aria-label="Accounts, newest first"></ul>
+
+        <nav class="pagination" id="pagination" aria-label="Pages" hidden>
+          <button type="button" class="btn btn-secondary" id="prev-page">Previous</button>
+          <span class="page-status" id="page-status">Page 1 of 1</span>
+          <button type="button" class="btn btn-secondary" id="next-page">Next</button>
+        </nav>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>SkillForge AI</span>
+      <span class="text-faint">Built as a portfolio project — <a href="https://github.com/edigeRr/skillforge-ai">source on GitHub</a></span>
+    </div>
+  </footer>
+
+  <script src="/static/js/nav.js"></script>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

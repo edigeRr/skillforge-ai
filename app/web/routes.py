@@ -53,7 +53,7 @@ async def login_page() -> FileResponse:
 # How to verify the members-only pages
 # ====================================
 #
-# /interview, /history and /dashboard load static/js/guard.js in <head>. Without an access
+# /interview, /history, /dashboard and /admin load static/js/guard.js in <head>. Without an access
 # token in the browser it replaces the page with /login before anything is shown. The guard
 # is a convenience, not security: the data behind these pages comes from API endpoints that
 # check the token themselves.
@@ -85,6 +85,11 @@ async def history_page() -> FileResponse:
 @router.get("/dashboard")
 async def dashboard_page() -> FileResponse:
     return _page("dashboard.html")
+
+
+@router.get("/admin")
+async def admin_page() -> FileResponse:
+    return _page("admin.html")
 
 
 @router.get("/interview/{interview_id}")
