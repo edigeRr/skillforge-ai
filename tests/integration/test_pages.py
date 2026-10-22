@@ -45,3 +45,28 @@ async def test_session_page_needs_an_interview_id_shaped_like_a_uuid(client):
     response = await client.get("/interview/not-an-id")
 
     assert response.status_code == 422
+
+
+async def test_browsers_get_the_404_page_for_unknown_addresses(client):
+    response = await client.get("/no-such-page", headers={"accept": "text/html"})
+
+    assert response.status_code == 404
+    assert response.headers["content-type"].startswith("text/html")
+    assert "Page not found" in response.text
+    for asset in ASSET_REFERENCE.findall(response.text):
+        assert (await client.get(asset)).status_code == 200
+
+
+@pytest.mark.parametrize(
+    ("path", "accept"),
+    [
+        ("/no-such-page", "application/json"),
+        ("/api/v1/no-such-endpoint", "text/html"),
+        ("/static/no-such-file.css", "text/html"),
+    ],
+)
+async def test_api_clients_and_static_files_keep_the_json_404(client, path, accept):
+    response = await client.get(path, headers={"accept": accept})
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not Found"}
