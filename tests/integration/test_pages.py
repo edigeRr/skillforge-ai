@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-PAGES = ["/", "/register", "/login"]
+PAGES = ["/", "/register", "/login", "/interview", "/history", "/dashboard"]
 ASSET_REFERENCE = re.compile(r'(?:href|src)="(/static/[^"]+)"')
 
 
@@ -29,6 +29,5 @@ async def test_every_asset_a_page_references_is_served(client, path):
 async def test_pages_are_not_part_of_the_openapi_schema(client):
     schema = (await client.get("/openapi.json")).json()
 
-    assert "/register" not in schema["paths"]
-    assert "/login" not in schema["paths"]
-    assert "/" not in schema["paths"]
+    for path in PAGES:
+        assert path not in schema["paths"]
