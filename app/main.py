@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api import health
 from app.api.v1.router import api_router
@@ -8,6 +9,7 @@ from app.core.config import get_settings
 from app.core.exceptions import AppException, app_exception_handler
 from app.core.logging import configure_logging
 from app.core.middleware import RequestIDMiddleware
+from app.web.routes import not_found_handler
 from app.web.routes import router as web_router
 
 settings = get_settings()
@@ -34,6 +36,7 @@ app.add_middleware(
 )
 
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(StarletteHTTPException, not_found_handler)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

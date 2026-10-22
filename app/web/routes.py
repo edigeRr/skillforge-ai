@@ -7,8 +7,10 @@ endpoints.
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Request
+from fastapi.exception_handlers import http_exception_handler
+from fastapi.responses import FileResponse, Response
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 router = APIRouter(include_in_schema=False)
 
@@ -17,6 +19,20 @@ STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 
 def _page(filename: str) -> FileResponse:
     return FileResponse(STATIC_DIR / filename)
+
+
+def _wants_a_page(request: Request) -> bool:
+    path = request.url.path
+    accepts_html = "text/html" in request.headers.get("accept", "")
+    return accepts_html and not path.startswith(("/api/", "/static/"))
+
+
+async def not_found_handler(request: Request, exc: StarletteHTTPException) -> Response:
+    """Browsers get the 404 page for unknown addresses; API clients and
+    missing static files keep FastAPI's usual JSON 404."""
+    if exc.status_code == 404 and _wants_a_page(request):
+        return FileResponse(STATIC_DIR / "404.html", status_code=404)
+    return await http_exception_handler(request, exc)
 
 
 @router.get("/")
