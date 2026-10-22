@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, dashboard, interview, profile
+from app.api.v1 import admin, auth, dashboard, interview, profile
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 api_router.include_router(interview.router, prefix="/interviews", tags=["interviews"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
