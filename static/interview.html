@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/interview.css" />
 </head>
 <body>
   <nav class="site-nav">
@@ -27,9 +28,41 @@
 
   <main>
     <section class="page-section container">
-      <p class="eyebrow">Interview</p>
-      <h1>Start an interview</h1>
-      <p class="text-muted">Choosing a language and a difficulty arrives here in the next update.</p>
+      <div class="card start-card">
+        <p class="eyebrow">Interview</p>
+        <h1>Start an interview</h1>
+        <p class="text-muted">Pick a language and a level. Questions come one at a time, and every answer gets a score and feedback.</p>
+
+        <div id="form-error" class="banner banner-error" role="alert" hidden></div>
+
+        <div id="resume-notice" class="banner resume-notice" role="status" hidden>
+          <p>You already have an interview in progress. Finish it before starting a new one.</p>
+          <a id="resume-link" class="btn btn-secondary" href="#">Continue that interview</a>
+        </div>
+
+        <form id="start-form">
+          <fieldset class="choice-group">
+            <legend>Language</legend>
+            <div class="choice-list">
+              <label class="chip"><input class="visually-hidden" type="radio" name="language" value="python" required />Python</label>
+              <label class="chip"><input class="visually-hidden" type="radio" name="language" value="java" />Java</label>
+              <label class="chip"><input class="visually-hidden" type="radio" name="language" value="cpp" />C++</label>
+              <label class="chip"><input class="visually-hidden" type="radio" name="language" value="javascript" />JavaScript</label>
+            </div>
+          </fieldset>
+
+          <fieldset class="choice-group">
+            <legend>Level</legend>
+            <div class="choice-list">
+              <label class="chip" data-heat="junior"><input class="visually-hidden" type="radio" name="difficulty" value="junior" required />Junior</label>
+              <label class="chip" data-heat="middle"><input class="visually-hidden" type="radio" name="difficulty" value="middle" />Middle</label>
+              <label class="chip" data-heat="senior"><input class="visually-hidden" type="radio" name="difficulty" value="senior" />Senior</label>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="btn btn-primary btn-block">Start interview</button>
+        </form>
+      </div>
     </section>
   </main>
 
@@ -41,5 +74,6 @@
   </footer>
 
   <script src="/static/js/nav.js"></script>
+  <script src="/static/js/interview.js"></script>
 </body>
 </html>
