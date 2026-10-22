@@ -36,8 +36,8 @@ Render was picked here because it hosts a Docker web service, managed Postgres, 
 ### What the Blueprint does, and why
 
 - **Database URL.** Render hands out `postgresql://...`. The app needs the async driver, so `Settings` rewrites `postgres://` and `postgresql://` to `postgresql+asyncpg://` (`app/core/config.py`, tested in `tests/unit/test_config.py`).
-- **Migrations.** The free plan has no Shell and no pre-deploy command, so `dockerCommand` runs `alembic upgrade head` right before uvicorn. The free plan runs exactly one instance, so the race described in section 1 cannot happen here. On a paid plan with several instances, move it to `preDeployCommand`.
-- **Port.** Render sets `PORT`; the command binds to it and falls back to 8000.
+- **Migrations and startup.** The free plan has no Shell and no pre-deploy command, so `dockerCommand` runs [`docker/start.sh`](../docker/start.sh), which applies `alembic upgrade head` and then starts uvicorn. A script is used because Render did not run an inline `sh -c "a && b"` command correctly (it looked for one program named after the whole string). The free plan runs exactly one instance, so the race described in section 1 cannot happen here. On a paid plan with several instances, move the migration to `preDeployCommand`.
+- **Port.** Render sets `PORT`; `start.sh` binds to it and falls back to 8000.
 - **Client IPs behind the proxy.** The rate limiter keys on `request.client.host`. Behind Render's proxy that is the proxy's address, so every visitor would share one "5 logins per minute" bucket. `--proxy-headers --forwarded-allow-ips='*'` makes uvicorn take the address from `X-Forwarded-For`. The trade-off: a client can spoof that header to dodge the limit. Acceptable for a demo; a real deployment should trust only the proxy's address range.
 - **CORS.** The pages are served by the same app, so they are same-origin. `CORS_ORIGINS` lists the service URL only to keep the setting explicit.
 
