@@ -38,6 +38,11 @@ class UnauthorizedError(AppException):
     error_code = "UNAUTHORIZED"
 
 
+class ForbiddenError(AppException):
+    status_code = 403
+    error_code = "FORBIDDEN"
+
+
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,

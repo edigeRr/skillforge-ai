@@ -5,10 +5,10 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import decode_access_token
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import Role, User
 from app.repositories.interview_repository import InterviewRepository
 from app.repositories.question_repository import QuestionRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -53,3 +53,9 @@ async def get_current_user(
     if user is None or not user.is_active:
         raise UnauthorizedError("User not found or inactive.", error_code="UNAUTHORIZED")
     return user
+
+
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != Role.ADMIN:
+        raise ForbiddenError("Administrator access required.", error_code="ADMIN_REQUIRED")
+    return current_user
