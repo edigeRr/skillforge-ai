@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found — SkillForge AI</title>
+  <meta name="description" content="This SkillForge AI page doesn't exist." />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span>SkillForge AI</a>
+      <div class="nav-links">
+        <a href="/login" data-auth="logged-out">Log in</a>
+        <a href="/dashboard" data-auth="logged-in">Dashboard</a>
+        <a href="/interview" data-auth="logged-in">Interview</a>
+        <a href="#" data-auth="logged-in" data-action="logout">Log out</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="page-section container">
+      <p class="eyebrow">404</p>
+      <h1>Page not found</h1>
+      <p class="text-muted">This page doesn't exist. The link may have a typo, or the page has moved.</p>
+      <div class="page-actions">
+        <a href="/" class="btn btn-primary">Go to the home page</a>
+        <a href="/interview" class="btn btn-secondary" data-auth="logged-in">Start an interview</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>SkillForge AI</span>
+      <span class="text-faint">Built as a portfolio project — <a href="https://github.com/edigeRr/skillforge-ai">source on GitHub</a></span>
+    </div>
+  </footer>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/nav.js"></script>
+</body>
+</html>

@@ -171,6 +171,13 @@ p {
   padding-block: var(--space-16);
 }
 
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
 .site-nav {
   border-bottom: 1px solid var(--border);
   padding: var(--space-4) 0;
