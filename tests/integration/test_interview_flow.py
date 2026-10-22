@@ -14,6 +14,7 @@ async def test_full_interview_lifecycle(client):
     interview = start_resp.json()
     assert interview["status"] == "in_progress"
     assert interview["current_question"]["order_index"] == 1
+    assert interview["total_questions"] == settings.INTERVIEW_QUESTION_COUNT
 
     interview_id = interview["id"]
     question_id = interview["current_question"]["id"]
@@ -46,6 +47,7 @@ async def test_full_interview_lifecycle(client):
     assert detail["status"] == "completed"
     assert detail["score"] is not None
     assert len(detail["questions"]) == question_count
+    assert detail["total_questions"] == question_count
     assert all(q["answer"] is not None for q in detail["questions"])
 
 
@@ -129,6 +131,7 @@ async def test_finish_early_computes_partial_score(client):
     assert body["score"] is not None
     answered = [q for q in body["questions"] if q["answer"] is not None]
     assert len(answered) == 1
+    assert body["total_questions"] == settings.INTERVIEW_QUESTION_COUNT
 
 
 async def test_finish_rejects_when_already_completed(client):
