@@ -13,6 +13,7 @@ erDiagram
         varchar email UK
         varchar password_hash
         varchar name
+        varchar role
         boolean is_active
         timestamp created_at
         timestamp updated_at
@@ -58,11 +59,14 @@ erDiagram
 | email | VARCHAR(255) | UNIQUE, NOT NULL |
 | password_hash | VARCHAR(255) | NOT NULL |
 | name | VARCHAR(100) | NOT NULL |
+| role | VARCHAR(20) | NOT NULL, default `'user'` |
 | is_active | BOOLEAN | NOT NULL, default `true` |
 | created_at | TIMESTAMPTZ | NOT NULL, default `now()` |
 | updated_at | TIMESTAMPTZ | NOT NULL, default `now()` |
 
 Index: unique index on `email` (also serves as the login lookup index).
+
+`role` is `user` or `admin` (the `Role` enum in `app/models/user.py`). It is a plain string with no CHECK constraint on purpose: more roles are planned, and adding one should not need a migration. The API validates the value instead.
 
 ### refresh_tokens
 | Column | Type | Constraints |
