@@ -14,7 +14,7 @@ const guardScript = readStatic("js/guard.js");
 
 const ACCESS_TOKEN_KEY = "skillforge_access_token";
 const REFRESH_TOKEN_KEY = "skillforge_refresh_token";
-const PROTECTED_PAGES = ["interview", "history", "dashboard"];
+const PROTECTED_PAGES = ["interview", "session", "history", "dashboard"];
 const PUBLIC_PAGES = ["index", "register", "login"];
 
 function openPage(t, name, storedTokens = {}) {
