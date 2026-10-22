@@ -26,6 +26,8 @@ static/
 ├── session.html         one interview session at /interview/{id}: question, answer, score, summary (members only)
 ├── history.html         past interviews with filters and pages (members only)
 ├── dashboard.html       progress overview: totals, average, strongest and weakest topics (members only)
+├── 404.html             page-not-found page for unknown addresses
+├── favicon.svg          the ember dot from the logo, on every page
 ├── css/
 │   ├── style.css         shared design tokens, typography, base components (buttons, cards, chips, nav)
 │   ├── forms.css          form fields, labels, hints and the invalid state
@@ -218,6 +220,12 @@ The dashboard tests cover the totals, the average on the heat scale and both top
 
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
+## Polish
+
+- **Favicon.** `favicon.svg` is the glowing ember dot from the logo on the dark background. One SVG covers every size, so there are no PNG variants to keep in sync.
+- **404 page.** FastAPI answers an unknown address with `{"detail": "Not Found"}` — fine for an API client, a dead end in a browser. `not_found_handler` in `app/web/routes.py` serves `404.html` (still with status 404) when the request asks for HTML and the path isn't under `/api/` or `/static/`. Everything else, and every status other than 404, goes to FastAPI's normal handler, so API clients see no change.
+- **Narrow screens.** Below 640px the brand and nav links shrink and never wrap, the nav button gets smaller padding, and the home page's "How it works" link — an anchor to a section a scroll away — is hidden. Below 360px the gaps tighten once more. Measured on every page, logged in and out: the nav stays on one line with no horizontal scroll at 375px and at 320px.
+
 ## Previewing without Docker
 
 `scripts/preview_server.py` serves the real pages and static files and answers `/api/v1` from memory, so the frontend can be clicked through on a machine without Postgres or Redis. Requests are validated by the real schemas in `app/schemas`, responses are built from them too, and questions and scores come from the real `FakeAIProvider` — so status codes, `error_code` values and JSON shapes match the real API. It skips rate limits and the dashboard cache, and forgets everything on restart. `POST /api/v1/dev/reset` wipes it without a restart.
@@ -229,6 +237,16 @@ python -m venv .venv
 ```
 
 Then open http://127.0.0.1:8765. Anything that depends on the database or Redis — migrations, rate limiting, the backend test suite — still needs `docker compose up`.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs three jobs on every push to `main` and every pull request:
+
+| Job | What it checks |
+|---|---|
+| `test` | black, isort and ruff, then the backend suite against Postgres and Redis service containers, with the coverage gate |
+| `frontend` | `npm ci` and `npm test` in `tests-frontend` on Node.js 20, the oldest version `package.json` allows |
+| `docker` | builds `docker/Dockerfile`, starts the container without a database (pages and static files don't need one), and checks with `curl` that `/`, `/register`, `/login`, `api.js` and the favicon are served and that an unknown page gets a 404 |
 
 ## Progress
 
@@ -243,9 +261,8 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.8.1** — `total_questions` in the interview API responses, so the session shows "Question 2 of 5". Also fixed: the session page added 1 to `order_index`, which the API already counts from 1, so the first question showed as "Question 2".
 - **v1.9** — history: `history.html`, `history.css`, `history.js`, jsdom tests; the score meter moved to `score.css` and `paintScore` to `heat.js`.
 - **v1.10** — dashboard: `dashboard.html`, `dashboard.css`, `dashboard.js`, jsdom tests.
+- **v1.11** — polish and CI: favicon, 404 page, a nav that fits phone screens, `frontend` and `docker` CI jobs, README brought up to date.
 
 ## What's next
 
-- Polish: a favicon, a 404 page, and a nav that fits on a 375px phone screen (today the brand and "Log out" wrap onto two lines there).
 - An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
-- Running the frontend tests in CI.
