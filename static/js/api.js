@@ -98,6 +98,7 @@
     get: (path) => request(path, { method: "GET" }),
     post: (path, body, opts = {}) => request(path, { method: "POST", body, ...opts }),
     put: (path, body) => request(path, { method: "PUT", body }),
+    patch: (path, body) => request(path, { method: "PATCH", body }),
   };
 
   window.SkillForge = {
