@@ -1,0 +1,58 @@
+.start-card {
+  max-width: 560px;
+}
+
+.choice-group {
+  border: 0;
+  margin: 0 0 var(--space-6);
+  padding: 0;
+}
+
+.choice-group legend {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+  padding: 0;
+}
+
+.choice-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.chip:has(input:focus-visible) {
+  outline: 2px solid var(--ember-bright);
+  outline-offset: 2px;
+}
+
+.chip:has(input:checked) {
+  border-color: var(--ember);
+  background: var(--ember-dim);
+  color: var(--gold-bright);
+}
+
+.chip[data-heat="junior"]:has(input:checked) {
+  border-color: var(--heat-4);
+}
+
+.chip[data-heat="middle"]:has(input:checked) {
+  border-color: var(--heat-8);
+}
+
+.chip[data-heat="senior"]:has(input:checked) {
+  border-color: var(--heat-10);
+  box-shadow: 0 0 10px var(--heat-8);
+}
+
+.resume-notice {
+  border: 1px solid var(--gold);
+  color: var(--text);
+}
+
+.resume-notice p {
+  margin-bottom: var(--space-3);
+}
