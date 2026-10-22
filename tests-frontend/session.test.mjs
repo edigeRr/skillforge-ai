@@ -49,6 +49,7 @@ function interview(overrides = {}) {
     score: null,
     created_at: "2026-10-22T10:00:00Z",
     finished_at: null,
+    total_questions: 5,
     questions: [
       question(0, { answer: "Earlier answer", feedback: "Fine.", score: 5 }),
       question(1),
@@ -169,11 +170,22 @@ test("opens on the first unanswered question of an interview in progress", async
   const page = await openOnQuestion(t);
 
   assert.equal(page.$("#session-meta").textContent, "Python · Middle");
-  assert.equal(page.$("#question-number").textContent, "Question 2");
+  assert.equal(page.$("#question-number").textContent, "Question 2 of 5");
   assert.equal(page.$("#question-topic").textContent, "topic-2");
   assert.equal(page.$("#question-text").textContent, "Question text 2?");
   assert.equal(page.visible("loading-view"), false);
   assert.equal(page.document.activeElement, page.answer);
+});
+
+test("falls back to a plain question number when the total is unknown", async (t) => {
+  const withoutTotal = interview();
+  delete withoutTotal.total_questions;
+  const page = await openSessionPage(t, {
+    [`GET ${DETAIL_URL}`]: () => jsonResponse(200, withoutTotal),
+  });
+  await waitFor(() => page.visible("question-view"), "the question");
+
+  assert.equal(page.$("#question-number").textContent, "Question 2");
 });
 
 test("sends the trimmed answer and shows the score on the heat scale", async (t) => {
@@ -202,7 +214,7 @@ test("moves on to the next question with an empty answer box", async (t) => {
   page.nextButton.click();
 
   assert.equal(page.visible("question-view"), true);
-  assert.equal(page.$("#question-number").textContent, "Question 3");
+  assert.equal(page.$("#question-number").textContent, "Question 3 of 5");
   assert.equal(page.$("#question-text").textContent, "Question text 3?");
   assert.equal(page.answer.value, "");
   assert.equal(page.submitButton.disabled, false);

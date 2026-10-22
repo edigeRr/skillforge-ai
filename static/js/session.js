@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentQuestion = null;
   let nextQuestion = null;
+  let totalQuestions = null;
 
   function show(name, { focus = true } = {}) {
     for (const [key, view] of Object.entries(views)) {
@@ -74,7 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showQuestion(question) {
     currentQuestion = question;
-    $("#question-number").textContent = `Question ${question.order_index}`;
+    $("#question-number").textContent = totalQuestions
+      ? `Question ${question.order_index} of ${totalQuestions}`
+      : `Question ${question.order_index}`;
     $("#question-topic").textContent = question.topic;
     $("#question-text").textContent = question.question;
     answerField.value = "";
@@ -140,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function render(interview) {
     setMeta(interview);
+    totalQuestions = interview.total_questions ?? null;
     if (interview.status !== "in_progress") {
       showSummary(interview);
       return;
