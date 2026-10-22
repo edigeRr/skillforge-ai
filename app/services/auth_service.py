@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from uuid import UUID
 
 from app.core.config import get_settings
 from app.core.exceptions import ConflictError, UnauthorizedError
@@ -45,7 +44,7 @@ class AuthService:
         user = await self.users.get_by_email(email)
         if user is None or not verify_password(password, user.password_hash):
             raise UnauthorizedError("Invalid email or password.", error_code="INVALID_CREDENTIALS")
-        return await self._issue_tokens(user.id)
+        return await self._issue_tokens(user)
 
     async def refresh(self, raw_refresh_token: str) -> AuthResult:
         token_hash = hash_refresh_token(raw_refresh_token)
@@ -56,8 +55,14 @@ class AuthService:
                 "Refresh token is invalid or expired.", error_code="INVALID_REFRESH_TOKEN"
             )
 
+        user = await self.users.get_by_id(stored.user_id)
+        if user is None:
+            raise UnauthorizedError(
+                "Refresh token is invalid or expired.", error_code="INVALID_REFRESH_TOKEN"
+            )
+
         await self.refresh_tokens.revoke(stored.id)
-        return await self._issue_tokens(stored.user_id)
+        return await self._issue_tokens(user)
 
     async def logout(self, raw_refresh_token: str) -> None:
         token_hash = hash_refresh_token(raw_refresh_token)
@@ -65,11 +70,11 @@ class AuthService:
         if stored is not None:
             await self.refresh_tokens.revoke(stored.id)
 
-    async def _issue_tokens(self, user_id: UUID) -> AuthResult:
-        access_token = create_access_token(user_id)
+    async def _issue_tokens(self, user: User) -> AuthResult:
+        access_token = create_access_token(user.id, user.role)
         raw_refresh, token_hash, expires_at = generate_refresh_token()
         await self.refresh_tokens.add(
-            RefreshToken(user_id=user_id, token_hash=token_hash, expires_at=expires_at)
+            RefreshToken(user_id=user.id, token_hash=token_hash, expires_at=expires_at)
         )
         return AuthResult(
             access_token=access_token,

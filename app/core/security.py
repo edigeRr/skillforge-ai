@@ -19,9 +19,12 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
-def create_access_token(user_id: UUID) -> str:
+def create_access_token(user_id: UUID, role: str) -> str:
+    """`role` is a display hint for the frontend (e.g. whether to show the Admin
+    link). Authorization never trusts it: require_admin reads the role from the
+    database on every request."""
     expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": str(user_id), "type": "access", "exp": expire}
+    payload = {"sub": str(user_id), "role": role, "type": "access", "exp": expire}
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
