@@ -1,0 +1,54 @@
+.score {
+  margin: var(--space-4) 0 var(--space-6);
+}
+
+.score-number {
+  font-family: var(--font-mono);
+  margin-bottom: var(--space-2);
+}
+
+.score-value {
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.score-max {
+  color: var(--text-muted);
+}
+
+.score-meter {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border-strong);
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.4s ease;
+}
+
+.score[data-heat="10"] .score-fill {
+  box-shadow: 0 0 12px var(--heat-8);
+}
+
+.score-compact {
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.score-compact .score-value {
+  font-size: 1.25rem;
+}
+
+.score-compact .score-meter {
+  height: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-fill {
+    transition: none;
+  }
+}
