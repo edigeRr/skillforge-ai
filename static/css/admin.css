@@ -103,6 +103,10 @@
   margin-top: var(--space-6);
 }
 
+.pagination[hidden] {
+  display: none;
+}
+
 .page-status {
   font-family: var(--font-mono);
   font-size: 0.85rem;
