@@ -4,10 +4,11 @@
  * after api.js.
  */
 document.addEventListener("DOMContentLoaded", () => {
-  const { isLoggedIn, clearTokens, getRefreshToken, api } = window.SkillForge;
+  const { isLoggedIn, getRole, clearTokens, getRefreshToken, api } = window.SkillForge;
 
   const loggedOutEls = document.querySelectorAll("[data-auth='logged-out']");
   const loggedInEls = document.querySelectorAll("[data-auth='logged-in']");
+  const adminEls = document.querySelectorAll("[data-auth='admin']");
 
   function syncAuthUI() {
     // Explicit values in both branches - relying on an empty string to
@@ -16,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const authed = isLoggedIn();
     loggedOutEls.forEach((el) => (el.style.display = authed ? "none" : "inline-flex"));
     loggedInEls.forEach((el) => (el.style.display = authed ? "inline-flex" : "none"));
+    const admin = authed && getRole() === "admin";
+    adminEls.forEach((el) => (el.hidden = !admin));
   }
 
   syncAuthUI();

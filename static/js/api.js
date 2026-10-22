@@ -31,6 +31,21 @@
     return Boolean(getAccessToken());
   }
 
+  /**
+   * The role claim from the access token, or null. Only a display hint (which
+   * nav links to show): the server checks the real role on every request.
+   */
+  function getRole() {
+    const token = getAccessToken();
+    if (!token) return null;
+    try {
+      const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(atob(payload.padEnd(Math.ceil(payload.length / 4) * 4, "="))).role ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   class ApiError extends Error {
     constructor(status, errorCode, detail) {
       super(detail || errorCode || `Request failed (${status})`);
@@ -109,5 +124,6 @@
     setTokens,
     clearTokens,
     isLoggedIn,
+    getRole,
   };
 })();
