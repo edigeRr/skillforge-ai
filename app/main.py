@@ -17,7 +17,7 @@ configure_logging()
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="1.0.0",
+    version="1.1.0",
     description=(
         "AI-powered mock technical interview platform. Register, log in with "
         "the **Authorize** button above, start an interview, and answer "
