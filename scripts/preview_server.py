@@ -80,6 +80,7 @@ class User:
     email: str
     password: str
     name: str
+    role: str = "user"
     id: UUID = field(default_factory=uuid4)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
