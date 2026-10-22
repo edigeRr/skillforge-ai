@@ -21,23 +21,26 @@ Dark background throughout — a forge is dark except for what's glowing.
 static/
 ├── index.html           landing page
 ├── register.html        sign-up page
+├── login.html           log-in page
 ├── css/
 │   ├── style.css         shared design tokens, typography, base components (buttons, cards, chips, nav)
 │   ├── forms.css          form fields, labels, hints and the invalid state
-│   ├── auth.css           card layout shared by the sign-up and (soon) log-in pages
+│   ├── auth.css           card layout shared by the sign-up and log-in pages
 │   └── home.css           landing-page-specific layout
 └── js/
     ├── api.js             fetch wrapper: token storage, auto-refresh on 401, unified error handling
     ├── nav.js              shared nav auth-state toggle + logout, included on every page
     ├── hero.js             landing page typewriter effect
-    └── register.js         sign-up form: register, log in, error messages
+    ├── register.js         sign-up form: register, log in, error messages
+    └── login.js            log-in form: log in, store tokens, error messages
 
 app/web/
 └── routes.py            FastAPI routes that serve the static HTML pages (kept out of the OpenAPI schema)
 
 tests-frontend/
 ├── package.json         jsdom is the only dependency; `npm test` runs Node's built-in test runner
-└── register.test.mjs    sign-up form tests
+├── register.test.mjs    sign-up form tests
+└── login.test.mjs       log-in form tests
 ```
 
 Each page is a self-contained `.html` file with its own `<script>` tags — no templating layer, so nav/footer markup is duplicated per page rather than shared through includes. That's a deliberate trade for "no build step, every file readable on its own."
@@ -72,6 +75,19 @@ Problems are shown in one banner above the form. It has `role="alert"`, so scree
 
 Form fields use `--text-faint` for their border so the field boundary keeps a contrast of at least 3:1 against the card, as WCAG 2.1 asks for interface components.
 
+## Log-in page (`/login`)
+
+The form asks for an email and a password, using the same card (`auth.css`) and fields (`forms.css`) as the sign-up page. The browser checks first that both are filled in and that the email looks like an email. The password field has `autocomplete="current-password"`, so password managers offer the saved password.
+
+On submit, `login.js` locks the button, calls `POST /auth/login`, stores the returned tokens and sends the user to the home page. The request is sent without an access token, so a wrong password never triggers the automatic token refresh in `api.js`.
+
+| Situation | What the user sees |
+|---|---|
+| `401 INVALID_CREDENTIALS` | "Incorrect email or password." The API gives the same answer for an unknown email and a wrong password, so neither field is marked: the page can't know which one is wrong, and saying so would reveal which emails have accounts. |
+| `429` | "Too many attempts - wait a minute and try again." The limit is shared with sign-up. |
+| Server unreachable | "Can't reach the server. Check your connection and try again." |
+| Anything else | "Something went wrong. Please try again." |
+
 ## Tests
 
 **Pages (backend).** `tests/integration/test_pages.py` checks that every page route returns HTML, that every `/static/...` file a page references is actually served, and that the page routes stay out of the OpenAPI schema. It runs with the rest of the backend suite.
@@ -86,6 +102,8 @@ npm test
 
 This needs Node.js 20 or newer. The sign-up tests cover the happy path (register, log in, tokens stored, redirect), every message in the table above, the double-submit guard, and the native validation rules whose limits must match the API schema (password 8–72, name up to 100).
 
+The log-in tests cover the happy path (tokens stored, redirect), every message in the log-in table, that a wrong password does not start a token refresh, that an old error disappears on the next try, the double-submit guard, native validation, and the `autocomplete` values password managers rely on.
+
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
 ## Progress
@@ -94,10 +112,11 @@ jsdom does no layout and can't follow a real navigation, so these tests say noth
 - **v1.2** — design system (`style.css`: color tokens, typography, buttons, cards, chips) and the API client (`api.js`: fetch wrapper, token storage, auto-refresh).
 - **v1.3** — the real landing page (`home.css`, `nav.js`, `hero.js`, full `index.html`).
 - **v1.4** — sign-up: `register.html`, `forms.css`, `auth.css`, `register.js`, the `/register` route, backend page tests and the first frontend tests.
+- **v1.5** — log-in: `login.html`, `login.js`, the `/login` route, page and jsdom tests.
 
 ## What's next
 
-- A log-in page (reusing `auth.css` and `forms.css`), and guards that send logged-out visitors from `/interview`, `/dashboard` and `/history` to `/login`.
+- Guards that send logged-out visitors from `/interview`, `/dashboard` and `/history` to `/login`.
 - The interview start page and the interview session: question, answer box, score shown on the heat scale.
 - History and dashboard pages.
 - An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
