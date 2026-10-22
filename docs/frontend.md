@@ -22,13 +22,15 @@ static/
 ├── index.html           landing page
 ├── register.html        sign-up page
 ├── login.html           log-in page
-├── interview.html       interview (members only, placeholder for now)
+├── interview.html       interview start form: language and level (members only)
+├── session.html         one interview session at /interview/{id} (members only, placeholder for now)
 ├── history.html         past interviews (members only, placeholder for now)
 ├── dashboard.html       progress overview (members only, placeholder for now)
 ├── css/
 │   ├── style.css         shared design tokens, typography, base components (buttons, cards, chips, nav)
 │   ├── forms.css          form fields, labels, hints and the invalid state
 │   ├── auth.css           card layout shared by the sign-up and log-in pages
+│   ├── interview.css      start form: language and level chips
 │   └── home.css           landing-page-specific layout
 └── js/
     ├── api.js             fetch wrapper: token storage, auto-refresh on 401, unified error handling
@@ -36,6 +38,7 @@ static/
     ├── guard.js            sends logged-out visitors from members-only pages to /login
     ├── hero.js             landing page typewriter effect
     ├── register.js         sign-up form: register, log in, error messages
+    ├── interview.js        start form: start an interview or offer to resume the open one
     └── login.js            log-in form: log in, store tokens, error messages
 
 app/web/
@@ -45,6 +48,7 @@ tests-frontend/
 ├── package.json         jsdom is the only dependency; `npm test` runs Node's built-in test runner
 ├── register.test.mjs    sign-up form tests
 ├── login.test.mjs       log-in form tests
+├── interview.test.mjs   interview start form tests
 └── guard.test.mjs       members-only page guard tests
 ```
 
@@ -65,7 +69,7 @@ On submit, `register.js`:
 1. locks the button, so a double click can't send two requests;
 2. calls `POST /auth/register`;
 3. calls `POST /auth/login` with the same credentials and stores the returned tokens;
-4. sends the user to the home page, where the nav switches to the logged-in links. This will become the interview page once that page exists.
+4. sends the user to `/interview`, so a new account goes straight to starting a first interview.
 
 Problems are shown in one banner above the form. It has `role="alert"`, so screen readers announce it.
 
@@ -99,7 +103,23 @@ These pages load `api.js` and `guard.js` in `<head>`, before the page body. If t
 
 The guard only checks that a token is stored, not that it is still valid. That is enough: an expired token is refreshed by `api.js` on the first `401`, and if the refresh fails too, `api.js` clears the tokens and sends the user to `/login` itself. The guard is a convenience, not a security boundary — every piece of data on these pages comes from API endpoints that check the token on the server.
 
-For now the three pages are placeholders with a heading and one line of text; each gets its real content in its own stage.
+`/history` and `/dashboard` are still placeholders with a heading and one line of text; each gets its real content in its own stage.
+
+## Starting an interview (`/interview`)
+
+The start form has two groups of chips: language (Python, Java, C++, JavaScript) and level (Junior, Middle, Senior). Each chip is a real radio button inside a `<label>`; the button itself is visually hidden and the label is styled as the chip. That keeps the native behavior for free: arrow keys move within a group, a screen reader announces "Language, radio group", and `required` on each group means the browser won't submit until both are picked. A selected level chip takes its border color from the heat scale — the higher the level, the hotter the metal.
+
+On submit, `interview.js` locks the button, calls `POST /interviews` and sends the user to `/interview/{id}`. That page is a placeholder until the session screen exists; the route only accepts an id shaped like a UUID.
+
+| Situation | What the user sees |
+|---|---|
+| `409 INTERVIEW_ALREADY_IN_PROGRESS` | The page asks `GET /interviews?status=in_progress&page_size=1` for the open interview and shows "You already have an interview in progress" with a "Continue that interview" button linking to it. Focus moves to the button. |
+| `409`, and the open interview can't be loaded | "You already have an interview in progress, but it couldn't be loaded. Please try again." |
+| `429` | "Too many requests - wait a minute and try again." Starting an interview counts toward the limit of 30 write requests per minute. |
+| Server unreachable | "Can't reach the server. Check your connection and try again." |
+| Anything else | "Something went wrong. Please try again." |
+
+A `401` never reaches this table: `api.js` refreshes the token, or sends the user to `/login` if that fails.
 
 ## Tests
 
@@ -119,6 +139,8 @@ The log-in tests cover the happy path (tokens stored, redirect), every message i
 
 The guard tests open each members-only page with and without stored tokens and check that only the logged-out visit leaves the page, that `guard.js` runs in `<head>` right after `api.js`, and that public pages don't include it. jsdom can't report where a navigation was headed, so the `/login` target is checked in the guard's source and by hand in the browser.
 
+The interview start tests cover starting with the chosen language and level (with the access token attached), the resume offer on `409` and its fallback message, every other message in the table, that the resume offer disappears on the next try, the double-submit guard, native validation for both groups, and that the chips offer exactly the values the API accepts.
+
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
 ## Progress
@@ -129,10 +151,11 @@ jsdom does no layout and can't follow a real navigation, so these tests say noth
 - **v1.4** — sign-up: `register.html`, `forms.css`, `auth.css`, `register.js`, the `/register` route, backend page tests and the first frontend tests.
 - **v1.5** — log-in: `login.html`, `login.js`, the `/login` route, page and jsdom tests.
 - **v1.6** — members-only pages: `guard.js`, placeholder `interview.html`, `history.html`, `dashboard.html`, their routes, page and jsdom tests.
+- **v1.7** — starting an interview: `interview.css`, `interview.js`, the start form in `interview.html`, a placeholder `session.html` at `/interview/{id}`, sign-up now lands on `/interview`, page and jsdom tests. Also fixed: on screens under 640px the `.container` rule reset the vertical padding of `.page-section`.
 
 ## What's next
 
-- The interview start page and the interview session: question, answer box, score shown on the heat scale.
+- The interview session: question, answer box, score shown on the heat scale.
 - History and dashboard pages.
 - An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
 - Running the frontend tests in CI.
