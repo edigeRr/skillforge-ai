@@ -386,6 +386,10 @@ main {
 }
 
 /* --- Utility --- */
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
