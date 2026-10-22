@@ -209,6 +209,35 @@ async def get_interview(
     return _to_detail(interview, questions)
 
 
+# How to verify the interview history
+# ===================================
+#
+# 1. In the browser (start the app as in the registration block in app/api/v1/auth.py)
+#    Log in as a new user and open /history. Expected: "You haven't done any interviews yet"
+#    with a link to start one.
+#    Finish a few interviews (more than 10 to see paging) and open /history again.
+#    Expected: newest first, each with language, level, date and its score on the heat scale;
+#    an unfinished one says "In progress · Continue". Every row opens /interview/<id>.
+#    Pick a language. Expected: the list narrows, the address bar shows ?language=..., and
+#    reloading keeps the filter. Pick a combination with no results. Expected: "No interviews
+#    match these filters" and a "Clear filters" button.
+#    With more than 10 interviews: "Page 1 of 2", Next and Previous, and ?page=2 in the
+#    address bar. Open /history?page=99. Expected: the last page instead of an empty list.
+#
+# 2. Straight against the API (macOS, Linux, Git Bash)
+#      curl -H "Authorization: Bearer <access_token>" \
+#        "http://localhost:8000/api/v1/interviews?page=1&page_size=10&language=python"
+#    Expected: 200 with items (newest first), page, page_size and total. Send
+#    language=rust or page_size=101: 422.
+#
+#    Without Docker, scripts/preview_server.py runs the same pages against an in-memory API.
+#
+# 3. Automated tests (same test database as in the registration block)
+#      pytest tests/integration/test_interview_flow.py -q
+#      cd tests-frontend
+#      npm test
+
+
 @router.get("", response_model=PaginatedInterviews, summary="List your past interviews")
 async def list_interviews(
     page: int = Query(1, ge=1),
