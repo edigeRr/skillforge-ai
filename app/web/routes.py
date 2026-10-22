@@ -26,3 +26,8 @@ async def home() -> FileResponse:
 @router.get("/register")
 async def register_page() -> FileResponse:
     return _page("register.html")
+
+
+@router.get("/login")
+async def login_page() -> FileResponse:
+    return _page("login.html")
