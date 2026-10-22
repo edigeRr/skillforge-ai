@@ -49,6 +49,39 @@ def _to_detail(interview: Interview, questions: list[Question]) -> InterviewDeta
     )
 
 
+# How to verify starting an interview
+# ===================================
+#
+# 1. In the browser (start the app as in the registration block in app/api/v1/auth.py)
+#    Create an account at /register. Expected: you land on /interview with the start form.
+#    Press "Start interview" without choosing anything. Expected: the browser asks you to
+#    pick a language; nothing is sent. Choose a language and a level and press it again.
+#    Expected: you land on /interview/<id>, a placeholder until the session screen exists.
+#    Go back to /interview and start another one. Expected: "You already have an interview
+#    in progress" with a "Continue that interview" button that opens the same /interview/<id>.
+#
+# 2. Straight against the API (macOS, Linux, Git Bash), with the access_token from login
+#      curl -i -X POST http://localhost:8000/api/v1/interviews \
+#        -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" \
+#        -d '{"language": "python", "difficulty": "junior"}'
+#    Expected: 201 with the interview id and current_question. Repeat it: 409
+#    INTERVIEW_ALREADY_IN_PROGRESS. Then find the open one:
+#      curl -H "Authorization: Bearer <access_token>" \
+#        "http://localhost:8000/api/v1/interviews?status=in_progress&page_size=1"
+#    Expected: one item with the same id. Send "language": "rust": 422. Leave out the
+#    Authorization header: 401.
+#
+#    Windows PowerShell:
+#      Invoke-RestMethod -Method Post -Uri http://localhost:8000/api/v1/interviews `
+#        -Headers @{ Authorization = "Bearer <access_token>" } `
+#        -ContentType "application/json" -Body '{"language": "python", "difficulty": "junior"}'
+#
+# 3. Automated tests (same test database as in the registration block)
+#      pytest tests/integration/test_interview_flow.py tests/integration/test_pages.py -q
+#      cd tests-frontend
+#      npm test
+
+
 @router.post(
     "",
     response_model=InterviewResponse,
