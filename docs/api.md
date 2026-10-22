@@ -48,10 +48,12 @@ Response `200`:
 ```
 Errors: `401 INVALID_CREDENTIALS`, `429 TOO_MANY_ATTEMPTS`.
 
+The access token is a JWT with the claims `sub` (user id), `role`, `type` (`access`) and `exp`. `role` is only a display hint for clients, for example whether to show an Admin link. The server never trusts it: admin checks read the role from the database on every request. After a role change the claim catches up on the next refresh.
+
 ### POST /auth/refresh
 Request: `{ "refresh_token": "..." }`
 Response `200`: same shape as login (new access token + rotated refresh token).
-Errors: `401 INVALID_REFRESH_TOKEN` (expired, revoked, or unknown).
+The new access token carries the role the account has now. Errors: `401 INVALID_REFRESH_TOKEN` (expired, revoked, unknown, or the account no longer exists).
 
 ### POST /auth/logout
 Requires auth. Request: `{ "refresh_token": "..." }`. Revokes it server-side. Response `204`.
