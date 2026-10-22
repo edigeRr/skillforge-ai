@@ -23,7 +23,7 @@ static/
 ├── register.html        sign-up page
 ├── login.html           log-in page
 ├── interview.html       interview start form: language and level (members only)
-├── session.html         one interview session at /interview/{id} (members only, placeholder for now)
+├── session.html         one interview session at /interview/{id}: question, answer, score, summary (members only)
 ├── history.html         past interviews (members only, placeholder for now)
 ├── dashboard.html       progress overview (members only, placeholder for now)
 ├── css/
@@ -31,6 +31,7 @@ static/
 │   ├── forms.css          form fields, labels, hints and the invalid state
 │   ├── auth.css           card layout shared by the sign-up and log-in pages
 │   ├── interview.css      start form: language and level chips
+│   ├── session.css        question, answer box, score meter, summary
 │   └── home.css           landing-page-specific layout
 └── js/
     ├── api.js             fetch wrapper: token storage, auto-refresh on 401, unified error handling
@@ -39,6 +40,8 @@ static/
     ├── hero.js             landing page typewriter effect
     ├── register.js         sign-up form: register, log in, error messages
     ├── interview.js        start form: start an interview or offer to resume the open one
+    ├── heat.js             heatLevel / heatColor: a 0-10 score mapped onto the heat scale
+    ├── session.js          interview session: answer, score, next question, finish, summary
     └── login.js            log-in form: log in, store tokens, error messages
 
 app/web/
@@ -49,6 +52,7 @@ tests-frontend/
 ├── register.test.mjs    sign-up form tests
 ├── login.test.mjs       log-in form tests
 ├── interview.test.mjs   interview start form tests
+├── session.test.mjs     interview session tests
 └── guard.test.mjs       members-only page guard tests
 ```
 
@@ -109,7 +113,7 @@ The guard only checks that a token is stored, not that it is still valid. That i
 
 The start form has two groups of chips: language (Python, Java, C++, JavaScript) and level (Junior, Middle, Senior). Each chip is a real radio button inside a `<label>`; the button itself is visually hidden and the label is styled as the chip. That keeps the native behavior for free: arrow keys move within a group, a screen reader announces "Language, radio group", and `required` on each group means the browser won't submit until both are picked. A selected level chip takes its border color from the heat scale — the higher the level, the hotter the metal.
 
-On submit, `interview.js` locks the button, calls `POST /interviews` and sends the user to `/interview/{id}`. That page is a placeholder until the session screen exists; the route only accepts an id shaped like a UUID.
+On submit, `interview.js` locks the button, calls `POST /interviews` and sends the user to `/interview/{id}`. The route only accepts an id shaped like a UUID.
 
 | Situation | What the user sees |
 |---|---|
@@ -120,6 +124,31 @@ On submit, `interview.js` locks the button, calls `POST /interviews` and sends t
 | Anything else | "Something went wrong. Please try again." |
 
 A `401` never reaches this table: `api.js` refreshes the token, or sends the user to `/login` if that fails.
+
+## Interview session (`/interview/{id}`)
+
+The page loads `GET /interviews/{id}` and picks a view from it:
+
+- **In progress** — the first question without an answer, labelled "Question N · topic", with an answer box that gets focus. Reloading the page mid-interview lands on the same question, because the state lives on the server, not in the browser.
+- **Scored** — after `POST /interviews/{id}/answer`: the score out of 10, a bar filled to the score and colored on the heat scale, and the feedback. "Next question" shows the question that came back with the score; after the last one the button says "See results" and loads the finished interview.
+- **Summary** — for a completed interview, or right after "Finish early" (`POST /interviews/{id}/finish`, after a `confirm()`): the overall score and every question with the answer, its score and feedback. Unanswered questions say "Not answered." If nothing was scored, the page says so instead of showing 0.
+- **Not found** — the API answers `404` for an interview that belongs to someone else as well as for one that doesn't exist, and the page doesn't try to tell them apart.
+
+`heat.js` turns a score into a heat level by steps of two points — 0–1.9 is `--heat-0`, 2–3.9 is `--heat-2`, and so on up to exactly 10 for `--heat-10` — and `heatColor(score)` returns the matching `var(--heat-N)`. The number itself stays in the normal text color: the darkest heat colors would be unreadable as text on the dark background, so the color lives on the bar, not on the digits. The bar is a `role="meter"` with `aria-valuenow`, so screen readers announce "7.5 out of 10".
+
+Answers are user text, so they're always put on the page with `textContent`, never as HTML.
+
+| Situation | What the user sees |
+|---|---|
+| Answer is empty or only spaces | "Write an answer before submitting." Nothing is sent. |
+| `409` (question already answered, or interview no longer in progress — say, finished in another tab) | The page reloads the interview, shows its current state and says "This interview changed since the page loaded - here is its latest state." |
+| `429` | "Too many requests - wait a minute and try again." |
+| Server unreachable | "Can't reach the server. Check your connection and try again." |
+| Anything else | "Something went wrong. Please try again." |
+
+On every error the answer stays in the box, so nothing typed is lost. While an answer is being scored, the box is read-only and both buttons are disabled.
+
+The question counter shows "Question 2", not "Question 2 of 5": the API doesn't return how many questions an interview has. The count is `INTERVIEW_QUESTION_COUNT` in the backend settings, and hard-coding 5 in the frontend would silently drift from it.
 
 ## Tests
 
@@ -140,6 +169,8 @@ The log-in tests cover the happy path (tokens stored, redirect), every message i
 The guard tests open each members-only page with and without stored tokens and check that only the logged-out visit leaves the page, that `guard.js` runs in `<head>` right after `api.js`, and that public pages don't include it. jsdom can't report where a navigation was headed, so the `/login` target is checked in the guard's source and by hand in the browser.
 
 The interview start tests cover starting with the chosen language and level (with the access token attached), the resume offer on `409` and its fallback message, every other message in the table, that the resume offer disappears on the next try, the double-submit guard, native validation for both groups, and that the chips offer exactly the values the API accepts.
+
+The session tests cover opening on the first unanswered question, sending the trimmed answer, the score meter (value, heat level, color, width, `aria-valuenow`), moving to the next question, loading the summary after the last answer, opening a finished interview straight on its summary, answers rendered as text rather than HTML, the no-score case, the not-found view, a failed load, the blank-answer check, recovering from a `409`, finishing early with and without confirmation, every error message, the busy lock, and the heat-level steps.
 
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
@@ -164,10 +195,10 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.5** — log-in: `login.html`, `login.js`, the `/login` route, page and jsdom tests.
 - **v1.6** — members-only pages: `guard.js`, placeholder `interview.html`, `history.html`, `dashboard.html`, their routes, page and jsdom tests.
 - **v1.7** — starting an interview: `interview.css`, `interview.js`, the start form in `interview.html`, a placeholder `session.html` at `/interview/{id}`, sign-up now lands on `/interview`, page and jsdom tests. Also fixed: on screens under 640px the `.container` rule reset the vertical padding of `.page-section`.
+- **v1.8** — the interview session: `session.html`, `session.css`, `session.js`, `heat.js`, jsdom tests. Plus `scripts/preview_server.py` for previewing without Docker.
 
 ## What's next
 
-- The interview session: question, answer box, score shown on the heat scale.
 - History and dashboard pages.
 - An admin area. Backend first — a `role` column, an admin-only dependency, endpoints to create accounts and change roles — then a page for it. Roles are meant to grow beyond `admin` and `user`.
 - Running the frontend tests in CI.
