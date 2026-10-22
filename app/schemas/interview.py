@@ -34,6 +34,7 @@ class InterviewResponse(BaseModel):
     language: str
     difficulty: str
     status: str
+    total_questions: int
     current_question: QuestionResponse
 
 
@@ -69,6 +70,7 @@ class InterviewDetailResponse(BaseModel):
     score: float | None
     created_at: datetime
     finished_at: datetime | None
+    total_questions: int
     questions: list[QuestionDetailResponse]
 
 

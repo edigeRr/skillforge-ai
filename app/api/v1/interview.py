@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.ai.factory import get_ai_provider
 from app.api.deps import get_current_user, get_interview_repository, get_question_repository
+from app.core.config import get_settings
 from app.core.rate_limit import general_write_rate_limit
 from app.models.interview import Interview
 from app.models.question import Question
@@ -27,6 +28,7 @@ from app.schemas.interview import (
 from app.services.interview_service import InterviewService
 
 router = APIRouter()
+settings = get_settings()
 
 
 def get_interview_service(
@@ -45,6 +47,7 @@ def _to_detail(interview: Interview, questions: list[Question]) -> InterviewDeta
         score=interview.score,
         created_at=interview.created_at,
         finished_at=interview.finished_at,
+        total_questions=settings.INTERVIEW_QUESTION_COUNT,
         questions=[QuestionDetailResponse.model_validate(q) for q in questions],
     )
 
@@ -97,13 +100,15 @@ async def start_interview(
     """Start a new interview and get the first question in the same
     response. A user can only have one interview `in_progress` at a time -
     finish or complete the current one before starting another
-    (`409 INTERVIEW_ALREADY_IN_PROGRESS`)."""
+    (`409 INTERVIEW_ALREADY_IN_PROGRESS`). `total_questions` is how many
+    questions the interview asks in all; `order_index` counts from 1."""
     interview, question = await service.start(current_user.id, payload.language, payload.difficulty)
     return InterviewResponse(
         id=interview.id,
         language=interview.language,
         difficulty=interview.difficulty,
         status=interview.status,
+        total_questions=settings.INTERVIEW_QUESTION_COUNT,
         current_question=QuestionResponse.model_validate(question),
     )
 
@@ -198,7 +203,8 @@ async def get_interview(
     service: InterviewService = Depends(get_interview_service),
 ) -> InterviewDetailResponse:
     """Full detail for a single interview: every question, your answer,
-    the feedback, and the per-question and overall scores."""
+    the feedback, and the per-question and overall scores, plus
+    `total_questions` - how many questions the interview asks in all."""
     interview, questions = await service.get_detail(current_user.id, interview_id)
     return _to_detail(interview, questions)
 
