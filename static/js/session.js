@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showQuestion(question) {
     currentQuestion = question;
-    $("#question-number").textContent = `Question ${question.order_index + 1}`;
+    $("#question-number").textContent = `Question ${question.order_index}`;
     $("#question-topic").textContent = question.topic;
     $("#question-text").textContent = question.question;
     answerField.value = "";
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const heading = document.createElement("p");
     heading.className = "summary-topic";
-    heading.textContent = `Q${question.order_index + 1} · ${question.topic}`;
+    heading.textContent = `Q${question.order_index} · ${question.topic}`;
 
     const text = document.createElement("p");
     text.className = "summary-question";

@@ -33,7 +33,7 @@ const started = () =>
     language: "python",
     difficulty: "middle",
     status: "in_progress",
-    current_question: { id: "q1", order_index: 0, topic: "gil", question: "Explain the GIL." },
+    current_question: { id: "q1", order_index: 1, topic: "gil", question: "Explain the GIL." },
   });
 const alreadyInProgress = () =>
   jsonResponse(409, {

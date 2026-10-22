@@ -30,7 +30,7 @@ function jsonResponse(status, body) {
 function question(index, overrides = {}) {
   return {
     id: `q${index + 1}`,
-    order_index: index,
+    order_index: index + 1,
     topic: `topic-${index + 1}`,
     question: `Question text ${index + 1}?`,
     answer: null,
@@ -74,7 +74,7 @@ const scored = (overrides = {}) =>
   jsonResponse(200, {
     feedback: "Solid, well-developed answer.",
     score: 7.5,
-    next_question: { id: "q3", order_index: 2, topic: "topic-3", question: "Question text 3?" },
+    next_question: { id: "q3", order_index: 3, topic: "topic-3", question: "Question text 3?" },
     interview_status: "in_progress",
     ...overrides,
   });
