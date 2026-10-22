@@ -148,7 +148,7 @@ Answers are user text, so they're always put on the page with `textContent`, nev
 
 On every error the answer stays in the box, so nothing typed is lost. While an answer is being scored, the box is read-only and both buttons are disabled.
 
-The question counter shows "Question 2", not "Question 2 of 5": the API doesn't return how many questions an interview has. The count is `INTERVIEW_QUESTION_COUNT` in the backend settings, and hard-coding 5 in the frontend would silently drift from it.
+The counter reads "Question 2 of 5". Both numbers come from the API — `order_index` counts from 1 and `total_questions` mirrors `INTERVIEW_QUESTION_COUNT` in the backend settings — so the page never hard-codes 5. If `total_questions` is missing, it falls back to "Question 2".
 
 ## Tests
 
@@ -170,7 +170,7 @@ The guard tests open each members-only page with and without stored tokens and c
 
 The interview start tests cover starting with the chosen language and level (with the access token attached), the resume offer on `409` and its fallback message, every other message in the table, that the resume offer disappears on the next try, the double-submit guard, native validation for both groups, and that the chips offer exactly the values the API accepts.
 
-The session tests cover opening on the first unanswered question, sending the trimmed answer, the score meter (value, heat level, color, width, `aria-valuenow`), moving to the next question, loading the summary after the last answer, opening a finished interview straight on its summary, answers rendered as text rather than HTML, the no-score case, the not-found view, a failed load, the blank-answer check, recovering from a `409`, finishing early with and without confirmation, every error message, the busy lock, and the heat-level steps.
+The session tests cover opening on the first unanswered question, sending the trimmed answer, the score meter (value, heat level, color, width, `aria-valuenow`), moving to the next question, loading the summary after the last answer, opening a finished interview straight on its summary, answers rendered as text rather than HTML, the no-score case, the "N of M" counter and its fallback, the not-found view, a failed load, the blank-answer check, recovering from a `409`, finishing early with and without confirmation, every error message, the busy lock, and the heat-level steps.
 
 jsdom does no layout and can't follow a real navigation, so these tests say nothing about how a page looks or where the browser lands next.
 
@@ -196,6 +196,7 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.6** — members-only pages: `guard.js`, placeholder `interview.html`, `history.html`, `dashboard.html`, their routes, page and jsdom tests.
 - **v1.7** — starting an interview: `interview.css`, `interview.js`, the start form in `interview.html`, a placeholder `session.html` at `/interview/{id}`, sign-up now lands on `/interview`, page and jsdom tests. Also fixed: on screens under 640px the `.container` rule reset the vertical padding of `.page-section`.
 - **v1.8** — the interview session: `session.html`, `session.css`, `session.js`, `heat.js`, jsdom tests. Plus `scripts/preview_server.py` for previewing without Docker.
+- **v1.8.1** — `total_questions` in the interview API responses, so the session shows "Question 2 of 5". Also fixed: the session page added 1 to `order_index`, which the API already counts from 1, so the first question showed as "Question 2".
 
 ## What's next
 
