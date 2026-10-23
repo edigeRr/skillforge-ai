@@ -128,7 +128,7 @@ Response `200`:
   "weak_topics": [{ "topic": "concurrency", "average_score": 3.2 }]
 }
 ```
-Topics need at least 2 scored data points to appear (see requirements.md, FR-5.1).
+Topics need at least 2 scored data points to appear (see requirements.md, FR-5.1). `best_topics` holds up to three topics with the highest average; `weak_topics` holds up to three of the lowest among the rest, so a topic is never in both. With three topics or fewer, `weak_topics` is empty.
 
 ## 8. Admin
 

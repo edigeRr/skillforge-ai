@@ -191,7 +191,7 @@ The page reads `GET /dashboard/stats` and shows:
 - **Average score** — on the heat scale, like every other score. If finished interviews have no scored answers, it says "No scored answers yet." instead of 0.
 - **Strongest topics** and **Needs work** — up to three topics each, with their average score. A topic shows up only after at least two scored answers on it (FR-5.1); until then the card explains that instead of staying blank.
 
-The API picks both lists from the same set of topics — the top three and the bottom three — so with three topics or fewer the same topic would land in both. The page drops from "Needs work" any topic already shown under "Strongest topics": calling `arrays` both your best and your worst topic helps no one.
+The API never puts a topic in both lists: "Needs work" is picked from the topics below the strongest three, so with three topics or fewer it stays empty and shows its explanation. (Until v1.2.0 the API could list a topic in both, and the page filtered the repeats out itself.)
 
 A greeting, "Welcome back, Ada.", comes from `GET /profile/me`. It is loaded separately and is purely decorative: if it fails, the stats still show and no error appears. If the stats fail, the page shows the usual message for `429`, an unreachable server, or anything else. With no finished interviews yet, the stats are replaced by "Finish your first interview to see your stats here" and a "Start an interview" button.
 
@@ -233,7 +233,7 @@ The session tests cover opening on the first unanswered question, sending the tr
 
 The history tests cover the first load and the row links, score versus status on each row, the empty and no-match states with "Clear filters", filters resetting to page 1 and appearing in the address bar, paging, restoring filters and page from the address bar, dropping values the API would reject, falling back from a page past the end, every error message, and ignoring an older response that arrives after a newer one.
 
-The dashboard tests cover the totals, the average on the heat scale and both topic lists, the greeting and what happens when the profile fails, keeping a topic out of both lists, the explanations for empty topic lists and a missing average, the first-interview state, topic names rendered as text, and every error message.
+The dashboard tests cover the totals, the average on the heat scale and both topic lists, the greeting and what happens when the profile fails, the explanations for empty topic lists and a missing average, the first-interview state, topic names rendered as text, and every error message.
 
 The nav tests check that every page with a nav has an Admin link that starts hidden, and that `nav.js` shows it only for a readable token whose role is `admin`: not for other roles, an unreadable token, or a logged-out visitor.
 
