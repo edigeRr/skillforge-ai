@@ -384,15 +384,17 @@ async def dashboard_stats(user: User = Depends(current_user)) -> DashboardStatsR
         for topic, scores in by_topic.items()
         if len(scores) >= MIN_TOPIC_DATA_POINTS
     ]
-    ranked = sorted(topic_stats, key=lambda t: t.average_score)
+    ranked = sorted(topic_stats, key=lambda t: t.average_score, reverse=True)
+    best = ranked[:TOP_TOPICS_COUNT]
+    weak = sorted(ranked[len(best) :], key=lambda t: t.average_score)[:TOP_TOPICS_COUNT]
 
     return DashboardStatsResponse(
         total_interviews=completed_count,
         average_score=(
             round(sum(completed_scores) / len(completed_scores), 2) if completed_scores else None
         ),
-        best_topics=list(reversed(ranked))[:TOP_TOPICS_COUNT],
-        weak_topics=ranked[:TOP_TOPICS_COUNT],
+        best_topics=best,
+        weak_topics=weak,
     )
 
 
