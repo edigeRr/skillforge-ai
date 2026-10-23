@@ -86,7 +86,7 @@ pytest --cov=app --cov-report=term-missing
 
 The tests drop and recreate every table, so they never touch the database `DATABASE_URL` names: they switch to `<name>_test` on the same server (`skillforge` → `skillforge_test`) and create it if needed. Your dev data stays.
 
-105 backend tests (unit + integration, against a real Postgres/Redis, not mocks-all-the-way-down), with coverage of `app/services` and `app/api` enforced at 80%+ as a CI gate. One of them is a live-provider test, skipped unless `RUN_LIVE_AI_TESTS=1` and a real API key are set, so CI never needs credentials.
+105 backend tests (unit + integration, against a real Postgres/Redis, not mocks-all-the-way-down). In CI coverage is 94% overall and 96% for `app/services` and `app/api`, where 80% is enforced as a gate. One of them is a live-provider test, skipped unless `RUN_LIVE_AI_TESTS=1` and a real API key are set, so CI never needs credentials.
 
 The frontend has 107 tests that run the real `static/js` files against the real pages in jsdom, with the API replaced by a scripted fake (Node.js 20+):
 
