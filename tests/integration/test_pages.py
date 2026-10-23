@@ -42,10 +42,19 @@ async def test_pages_are_not_part_of_the_openapi_schema(client):
         assert path not in schema["paths"]
 
 
-async def test_session_page_needs_an_interview_id_shaped_like_a_uuid(client):
-    response = await client.get("/interview/not-an-id")
+async def test_a_mistyped_interview_id_gets_the_404_page(client):
+    response = await client.get("/interview/not-an-id", headers={"accept": "text/html"})
 
-    assert response.status_code == 422
+    assert response.status_code == 404
+    assert response.headers["content-type"].startswith("text/html")
+    assert "Page not found" in response.text
+
+
+async def test_a_mistyped_interview_id_is_a_json_404_for_api_clients(client):
+    response = await client.get("/interview/not-an-id", headers={"accept": "application/json"})
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not Found"}
 
 
 async def test_browsers_get_the_404_page_for_unknown_addresses(client):

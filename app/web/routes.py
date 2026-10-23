@@ -106,5 +106,11 @@ async def admin_page() -> FileResponse:
 
 
 @router.get("/interview/{interview_id}")
-async def interview_session_page(interview_id: UUID) -> FileResponse:
+async def interview_session_page(interview_id: str) -> FileResponse:
+    """Takes a plain string so a mistyped id is a 404 (the page for browsers)
+    rather than FastAPI's JSON 422 for a path that fails UUID validation."""
+    try:
+        UUID(interview_id)
+    except ValueError:
+        raise StarletteHTTPException(status_code=404) from None
     return _page("session.html")
