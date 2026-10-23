@@ -146,29 +146,6 @@ test("still shows the stats when the profile can't be loaded", async (t) => {
   assert.equal(page.shown("#form-error"), false);
 });
 
-test("does not list a topic as both strongest and weakest", async (t) => {
-  const page = await openDashboard(t, {
-    [STATS_URL]: stats({
-      best_topics: [
-        { topic: "arrays", average_score: 8 },
-        { topic: "memory", average_score: 5 },
-      ],
-      weak_topics: [
-        { topic: "memory", average_score: 5 },
-        { topic: "arrays", average_score: 8 },
-      ],
-    }),
-    [PROFILE_URL]: profile,
-  });
-
-  assert.deepEqual(page.topics("best-topics"), [
-    ["arrays", "8.0"],
-    ["memory", "5.0"],
-  ]);
-  assert.deepEqual(page.topics("weak-topics"), []);
-  assert.equal(page.shown("#weak-none"), true);
-});
-
 test("explains empty topic lists instead of leaving blank cards", async (t) => {
   const page = await openDashboard(t, {
     [STATS_URL]: stats({ best_topics: [], weak_topics: [] }),

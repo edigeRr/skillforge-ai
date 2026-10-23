@@ -50,13 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
       paintScore(average, data.average_score);
     }
 
-    const shown = new Set(data.best_topics.map((topic) => topic.topic));
     fillTopics("#best-topics", "#best-none", data.best_topics);
-    fillTopics(
-      "#weak-topics",
-      "#weak-none",
-      data.weak_topics.filter((topic) => !shown.has(topic.topic)),
-    );
+    fillTopics("#weak-topics", "#weak-none", data.weak_topics);
     stats.hidden = false;
   }
 
