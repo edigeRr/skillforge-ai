@@ -46,11 +46,20 @@
     }
   }
 
+  /** Body fields a 422 names, e.g. ["email"] for loc ["body", "email"]. */
+  function invalidFields(detail) {
+    if (!Array.isArray(detail)) return [];
+    return detail
+      .map((item) => (item?.loc?.[0] === "body" ? item.loc[1] : undefined))
+      .filter((field) => typeof field === "string");
+  }
+
   class ApiError extends Error {
     constructor(status, errorCode, detail) {
-      super(detail || errorCode || `Request failed (${status})`);
+      super(typeof detail === "string" ? detail : errorCode || `Request failed (${status})`);
       this.status = status;
       this.errorCode = errorCode;
+      this.fields = invalidFields(detail);
     }
   }
 
