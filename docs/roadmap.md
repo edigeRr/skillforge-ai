@@ -2,6 +2,8 @@
 
 Six sprints, ~1.5–2 weeks each (roughly 10–12 weeks total at a part-time pace). Each sprint has a goal, a Definition of Done, and a task list. Task IDs are for tracking in GitHub Projects / Jira — split any task further if it doesn't fit in a day or two.
 
+**Where things stand:** Sprints 1–6 shipped as the backend release `v1.0.0` (last commit 2026-08-03). After that came the browser frontend (`v1.1.0`, 2026-10-22), then a live demo, an admin area and small fixes (`v1.2.0`, 2026-10-23). Those later stages are at the end of this file, in the same format, with tasks numbered on from SF-89.
+
 ## Sprint 1 — Project Foundation
 **Goal:** empty-but-real project that runs end to end with `docker compose up`.
 **Definition of Done:** a fresh clone + `docker compose up` gives a running API with a working `/health` endpoint and a CI pipeline that's green on an empty test suite.
@@ -117,3 +119,51 @@ Six sprints, ~1.5–2 weeks each (roughly 10–12 weeks total at a part-time pac
 - SF-86 Final smoke test: fresh clone → `docker compose up` → full interview flow, zero manual fixes
 - SF-87 Deploy a live demo instance (e.g. Render/Railway/Fly.io) so the README can link a working URL, not just code
 - SF-88 Add repo topics/description on GitHub for discoverability
+
+## Frontend — `v1.1.0`
+**Goal:** everything the API does is usable from a browser, served by the same FastAPI app with no build step.
+**Definition of Done:** sign up, log in, run a full interview, browse history and read the dashboard in a browser; every page has jsdom tests; CI runs them and a Docker smoke test.
+
+Built in stages v1.1–v1.11; the per-stage detail is in [frontend.md](frontend.md#progress).
+
+- SF-89 Static file serving and page routes (`app/web/routes.py`), `static/` shipped in the Docker image
+- SF-90 Design system (`style.css`, heat scale `--heat-0…10`) and the API client `api.js` (tokens, refresh on 401)
+- SF-91 Landing page, sign-up `/register`, log-in `/login`
+- SF-92 `guard.js` for members-only pages
+- SF-93 Interview start `/interview` and session `/interview/{id}`; `total_questions` added to the interview API
+- SF-94 History `/history` (filters, pages, state in the address bar) and dashboard `/dashboard`
+- SF-95 Favicon, 404 page, a nav that fits 320px screens
+- SF-96 `scripts/preview_server.py` — real pages and schemas with an in-memory API, for checking pages without Docker
+- SF-97 CI jobs `frontend` (jsdom tests) and `docker` (build, start, `curl` the pages)
+
+## Live demo
+**Goal:** a working public URL for the README (this is SF-87).
+**Definition of Done:** the Blueprint deploys from `main` on its own, and the deployed app passes `/health` with the database and Redis up.
+
+- SF-98 `render.yaml` Blueprint: web service, Postgres 16 and Key Value on the free plan
+- SF-99 Rewrite Render's `postgresql://` URLs to the asyncpg driver
+- SF-100 `docker/start.sh`: migrations, then uvicorn on Render's `PORT`, behind the proxy with real client IPs
+- SF-101 Close the database to outside connections (`ipAllowList: []`)
+- SF-102 [deployment.md](deployment.md) rewritten around the real Blueprint, the demo linked from the README
+
+## Admin area — `v1.2.0`
+**Goal:** accounts with an admin role can manage other accounts; roles can grow past two.
+**Definition of Done:** an admin can list accounts, create one and change roles from `/admin`; everyone else gets `403`; the first admin can be made without the API.
+
+- SF-103 `role` column (plain string, default `user`) with a migration
+- SF-104 `require_admin` dependency; `403 ADMIN_REQUIRED`
+- SF-105 `GET/POST /admin/users`, `PATCH /admin/users/{id}/role` (an admin can't change their own role)
+- SF-106 `scripts/make_admin.py` for the first admin
+- SF-107 `/admin` page, and an Admin link in the nav from a `role` claim in the access token (a display hint only)
+- SF-108 `Cache-Control: no-cache` on pages and static files; `[hidden]` that always wins over `display` rules
+
+## Small fixes after `v1.2.0`
+- SF-109 Tests always use `<name>_test`, never the dev database
+- SF-110 Dashboard topic lists picked without overlap in `DashboardService`
+- SF-111 404 page for a mistyped interview id
+- SF-112 Field-level messages for a `422` on sign-up, log-in and admin
+- SF-113 Chip borders at WCAG contrast
+
+## Open
+- `total_questions` comes from the current `INTERVIEW_QUESTION_COUNT`, not from the interview itself, so changing the setting would change what old interviews show. Needs a column and a migration if the setting ever changes.
+- A few lines over 100 characters in the older frontend tests (`register.test.mjs`, `login.test.mjs`, `session.test.mjs`); there's no JS formatter.
