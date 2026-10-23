@@ -50,14 +50,11 @@ def get_auth_service(
 #    Register and login share one limit of 5 requests per minute per IP. A 429 means: wait.
 #
 # 3. Automated tests (create the virtual environment first, as in README.md > Testing)
-#    The backend tests drop and recreate the tables of the database in DATABASE_URL, so never
-#    aim them at the dev database - they would erase the accounts you just created. Use a
-#    separate database (the variable below lasts for the current terminal window only):
+#    The backend tests drop and recreate every table, so tests/conftest.py never uses the
+#    database in DATABASE_URL itself: it switches to <name>_test on the same server
+#    (skillforge -> skillforge_test) and creates it if it's missing. Your dev accounts stay.
 #      docker compose up -d db redis
-#      docker compose exec db createdb -U skillforge skillforge_test
-#      $env:DATABASE_URL="postgresql+asyncpg://skillforge:skillforge@localhost:5432/skillforge_test"
 #      pytest tests/integration/test_auth_flow.py tests/integration/test_pages.py -q
-#    On macOS / Linux put DATABASE_URL=... in front of the pytest command instead.
 #    The frontend tests need Node.js 20 or newer:
 #      cd tests-frontend
 #      npm install
