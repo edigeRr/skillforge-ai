@@ -28,7 +28,7 @@ async def test_get_stats_computes_and_caches_on_first_call():
     assert stats.total_interviews == 5
     assert stats.average_score == 7.23
     assert [t.topic for t in stats.best_topics] == ["arrays", "sql", "recursion"]
-    assert [t.topic for t in stats.weak_topics] == ["concurrency", "recursion", "sql"]
+    assert [t.topic for t in stats.weak_topics] == ["concurrency"]
 
     cached_raw = await redis_client.get(dashboard_stats_key(user_id))
     assert cached_raw is not None
@@ -74,3 +74,25 @@ async def test_best_and_weak_topics_are_capped_at_top_three():
     assert len(stats.weak_topics) == 3
     assert stats.best_topics[0].topic == "topic-9"
     assert stats.weak_topics[0].topic == "topic-0"
+
+
+async def test_a_topic_is_never_both_best_and_weak():
+    service, interviews, questions = make_service()
+    interviews.stats_for_user.return_value = (2, 6.0)
+    questions.topic_stats_for_user.return_value = [("arrays", 8.0), ("memory", 5.0)]
+
+    stats = await service.get_stats(uuid4())
+
+    assert [t.topic for t in stats.best_topics] == ["arrays", "memory"]
+    assert stats.weak_topics == []
+
+
+async def test_weak_topics_come_from_below_the_best_three():
+    service, interviews, questions = make_service()
+    interviews.stats_for_user.return_value = (5, 6.0)
+    questions.topic_stats_for_user.return_value = [(f"topic-{i}", float(i)) for i in range(5)]
+
+    stats = await service.get_stats(uuid4())
+
+    assert [t.topic for t in stats.best_topics] == ["topic-4", "topic-3", "topic-2"]
+    assert [t.topic for t in stats.weak_topics] == ["topic-0", "topic-1"]

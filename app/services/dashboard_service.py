@@ -53,16 +53,11 @@ class DashboardService:
             user_id, min_data_points=MIN_TOPIC_DATA_POINTS
         )
 
-        best = [
-            TopicStat(topic=t, average_score=round(s, 2))
-            for t, s in sorted(topic_stats, key=lambda item: item[1], reverse=True)[
-                :TOP_TOPICS_COUNT
-            ]
-        ]
-        weak = [
-            TopicStat(topic=t, average_score=round(s, 2))
-            for t, s in sorted(topic_stats, key=lambda item: item[1])[:TOP_TOPICS_COUNT]
-        ]
+        ranked = sorted(topic_stats, key=lambda item: item[1], reverse=True)
+        best_pairs = ranked[:TOP_TOPICS_COUNT]
+        weak_pairs = sorted(ranked[len(best_pairs) :], key=lambda item: item[1])[:TOP_TOPICS_COUNT]
+        best = [TopicStat(topic=t, average_score=round(s, 2)) for t, s in best_pairs]
+        weak = [TopicStat(topic=t, average_score=round(s, 2)) for t, s in weak_pairs]
 
         return DashboardStats(
             total_interviews=total,
