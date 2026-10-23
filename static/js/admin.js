@@ -3,6 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const PAGE_SIZE = 20;
   const ROLE_LABELS = { user: "User", admin: "Admin" };
+  const FIELD_MESSAGES = {
+    name: "Please enter a name.",
+    email: "That email address doesn't look right - check it and try again.",
+    password: "A password needs 8+ characters with at least one letter and one digit.",
+  };
   const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
   const $ = (selector) => document.querySelector(selector);
@@ -184,6 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return { message: "An account with that email already exists.", fieldId: "new-email" };
     }
     if (error.status === 422) {
+      const field = Object.keys(FIELD_MESSAGES).find((name) => error.fields.includes(name));
+      if (field) {
+        return { message: FIELD_MESSAGES[field], fieldId: `new-${field}` };
+      }
       return {
         message:
           "Please check the details. A password needs 8+ characters with at least one letter and one digit.",

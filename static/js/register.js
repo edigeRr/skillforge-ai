@@ -2,6 +2,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const { api, setTokens } = window.SkillForge;
 
   const AFTER_REGISTER_URL = "/interview";
+  const FIELD_MESSAGES = {
+    name: "Please enter your name.",
+    email: "That email address doesn't look right - check it and try again.",
+    password: "A password needs 8+ characters with at least one letter and one digit.",
+  };
 
   const form = document.querySelector("#register-form");
   const banner = document.querySelector("#form-error");
@@ -16,6 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
     if (error.status === 422) {
+      const field = Object.keys(FIELD_MESSAGES).find((name) => error.fields.includes(name));
+      if (field) {
+        return { message: FIELD_MESSAGES[field], fieldId: field };
+      }
       return {
         message:
           "Please check your details. A password needs 8+ characters with at least one letter and one digit.",

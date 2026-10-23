@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (error.errorCode === "INVALID_CREDENTIALS") {
       return "Incorrect email or password.";
     }
+    if (error.status === 422) {
+      return "That email address doesn't look right - check it and try again.";
+    }
     if (error.status === 429) {
       return "Too many attempts - wait a minute and try again.";
     }
