@@ -140,6 +140,12 @@ test("does not try to refresh a token when the credentials are wrong", async (t)
 const FAILURES = [
   { name: "wrong credentials", respond: wrongCredentials, message: /^Incorrect email or password\.$/ },
   {
+    name: "an email the API rejects",
+    respond: () =>
+      jsonResponse(422, { detail: [{ loc: ["body", "email"], msg: "not a valid email" }] }),
+    message: /^That email address doesn't look right/,
+  },
+  {
     name: "rate limiting",
     respond: () =>
       jsonResponse(429, { detail: "Too many attempts", error_code: "TOO_MANY_ATTEMPTS" }),

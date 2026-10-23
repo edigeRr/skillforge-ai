@@ -264,6 +264,21 @@ test("marks the email field when the address is taken", async (t) => {
   assert.equal(page.$("#new-email").value, "user-2@example.com");
 });
 
+test("marks the field the API rejects", async (t) => {
+  const page = await openAdminPage(t, {
+    create: () =>
+      jsonResponse(422, { detail: [{ loc: ["body", "password"], msg: "needs a digit" }] }),
+  });
+
+  page.fill({ name: "Nia", email: "nia@example.com", password: "onlyletters" });
+  page.submit();
+  await waitFor(() => page.shown("#create-error"), "the error");
+
+  assert.match(page.$("#create-error").textContent, /^A password needs 8\+ characters/);
+  assert.equal(page.$("#new-password").getAttribute("aria-invalid"), "true");
+  assert.equal(page.$("#new-email").hasAttribute("aria-invalid"), false);
+});
+
 test("pages through accounts", async (t) => {
   const page = await openAdminPage(t, {
     list: ({ query }) =>

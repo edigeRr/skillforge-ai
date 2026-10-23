@@ -165,11 +165,48 @@ test("clears the invalid mark as soon as the user edits the field", async (t) =>
   assert.equal(page.fields.email.hasAttribute("aria-invalid"), false);
 });
 
+const fieldRejected = (...fields) => () =>
+  jsonResponse(422, { detail: fields.map((field) => ({ loc: ["body", field], msg: "bad" })) });
+
+const FIELD_ERRORS = [
+  { field: "email", message: /^That email address doesn't look right/ },
+  { field: "password", message: /^A password needs 8\+ characters/ },
+  { field: "name", message: /^Please enter your name\.$/ },
+];
+
+for (const { field, message } of FIELD_ERRORS) {
+  test(`marks the ${field} field when the API rejects it`, async (t) => {
+    const page = await openRegisterPage(t, { [REGISTER_URL]: fieldRejected(field) });
+    fill(page);
+
+    submit(page);
+    await waitFor(() => bannerShown(page), "the error banner");
+
+    assert.match(page.banner.textContent, message);
+    assert.equal(page.fields[field].getAttribute("aria-invalid"), "true");
+    assert.equal(page.window.document.activeElement, page.fields[field]);
+    for (const other of Object.keys(page.fields).filter((name) => name !== field)) {
+      assert.equal(page.fields[other].hasAttribute("aria-invalid"), false, other);
+    }
+  });
+}
+
+test("marks the first rejected field in form order", async (t) => {
+  const page = await openRegisterPage(t, { [REGISTER_URL]: fieldRejected("password", "email") });
+  fill(page);
+
+  submit(page);
+  await waitFor(() => bannerShown(page), "the error banner");
+
+  assert.equal(page.fields.email.getAttribute("aria-invalid"), "true");
+  assert.equal(page.fields.password.hasAttribute("aria-invalid"), false);
+});
+
 const FAILURES = [
   {
     name: "validation errors",
-    respond: () => jsonResponse(422, { detail: [{ loc: ["body", "password"], msg: "too weak" }] }),
-    message: /8\+ characters/,
+    respond: () => jsonResponse(422, { detail: [{ loc: ["body"], msg: "invalid JSON" }] }),
+    message: /^Please check your details/,
   },
   {
     name: "rate limiting",
