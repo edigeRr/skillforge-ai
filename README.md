@@ -4,7 +4,7 @@ AI-powered mock technical interview platform. Pick a language and a difficulty, 
 
 **Live demo:** https://skillforge-ai-t78b.onrender.com (free hosting: the first load after a quiet spell can take about a minute).
 
-It runs as one FastAPI app: a tested REST API (v1.0.0) and a browser UI on top of it — sign up, start an interview, answer questions one at a time, and see your scores, history and dashboard. Everything is also reachable straight through the interactive API docs at `/docs`.
+It runs as one FastAPI app: a tested REST API and a browser UI on top of it — sign up, start an interview, answer questions one at a time, and see your scores, history and dashboard. Everything is also reachable straight through the interactive API docs at `/docs`.
 
 ## Quick look
 
@@ -134,6 +134,8 @@ Full spec with every endpoint, request/response schema, and error code: [docs/ap
 - [x] Sprint 5 — Dashboard, hardening, load testing
 - [x] Sprint 6 — Docs, diagrams, v1.0.0 release
 - [x] Frontend — sign-up, log-in, interview session, history and dashboard pages, with jsdom tests
+- [x] Live demo on Render — Blueprint, migrations on start, database closed to outside traffic
+- [x] Admin area — roles, admin-only endpoints, `/admin` page and an Admin link in the nav
 
 Full task-level detail: [docs/roadmap.md](docs/roadmap.md).
 

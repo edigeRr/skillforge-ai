@@ -288,8 +288,8 @@ Then open http://127.0.0.1:8765. Anything that depends on the database or Redis 
 - **v1.9** — history: `history.html`, `history.css`, `history.js`, jsdom tests; the score meter moved to `score.css` and `paintScore` to `heat.js`.
 - **v1.10** — dashboard: `dashboard.html`, `dashboard.css`, `dashboard.js`, jsdom tests.
 - **v1.11** — polish and CI: favicon, 404 page, a nav that fits phone screens, `frontend` and `docker` CI jobs, README brought up to date.
-- **v1.13** — the Admin nav link (role claim in the access token, `getRole()`), `[hidden]` that always wins (fixes the history pager), `Cache-Control: no-cache` on pages and static files, static files mounted from an absolute path, nav and cache-header tests.
 - **v1.12** — admin: the `/admin` page (`admin.html`, `admin.css`, `admin.js`), `api.patch`, the admin endpoints in the preview server, page and jsdom tests. Built on the backend's `role` column and `/admin` endpoints.
+- **v1.13** — the Admin nav link (role claim in the access token, `getRole()`), `[hidden]` that always wins (fixes the history pager), `Cache-Control: no-cache` on pages and static files, static files mounted from an absolute path, nav and cache-header tests.
 
 ## What's next
 
